@@ -132,9 +132,13 @@ class GameScene extends Phaser.Scene {
       this.ultiGraphics.clear();
       this.ultiGraphics.lineStyle(2, 0xff2222, 0.85);
       this.policeList.forEach(cop => {
+        const path = cop._path;
+        if (!path || path.length < 2) return;
         this.ultiGraphics.beginPath();
         this.ultiGraphics.moveTo(cop.x, cop.y);
-        this.ultiGraphics.lineTo(this.player.x, this.player.y);
+        for (let i = cop._pathIdx || 1; i < path.length; i++) {
+          this.ultiGraphics.lineTo(path[i].x, path[i].y);
+        }
         this.ultiGraphics.strokePath();
       });
     }
