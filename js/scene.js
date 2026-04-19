@@ -29,13 +29,16 @@ class GameScene extends Phaser.Scene {
     this._makeHUD();
 
     this.keys = this.input.keyboard.addKeys({
-      up:     'W',
-      down:   'S',
-      left:   'A',
-      right:  'D',
-      sprint: Phaser.Input.Keyboard.KeyCodes.SHIFT,
-      ulti:   'Q',
+      up:       'W',
+      down:     'S',
+      left:     'A',
+      right:    'D',
+      sprint:   Phaser.Input.Keyboard.KeyCodes.SHIFT,
+      ulti:     'Q',
+      interact: 'E',
     });
+    this.nearbyItem    = null;
+    this.collectProgress = 0;
 
     this.cameras.main
       .setBounds(0, 0, COLS * T, ROWS * T)
@@ -160,8 +163,36 @@ class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    if (!this.gameStarted || this.caught || this.won) return;
+    if (!this.gameStarted || this.caught || this.won) {
+      this._hideCollectBar();
+      return;
+    }
     const dt = delta / 1000;
+
+    // Detect nearby item via manual distance check (avoids physics timing issues)
+    this.nearbyItem = null;
+    this.itemGroup.getChildren().forEach(item => {
+      if (item.active && Math.hypot(this.player.x - item.x, this.player.y - item.y) < 18) {
+        this.nearbyItem = item;
+      }
+    });
+
+    // Hold-E collection mechanic
+    if (this.nearbyItem && this.keys.interact.isDown) {
+      this.collectProgress += delta;
+      const required = this.nearbyItem.itemWeight * 350;
+      this._updateCollectBar(this.nearbyItem, this.collectProgress / required);
+      if (this.collectProgress >= required) {
+        const item = this.nearbyItem;
+        this.nearbyItem = null;
+        this.collectProgress = 0;
+        this._hideCollectBar();
+        this._collectItem(item);
+      }
+    } else {
+      this.collectProgress = 0;
+      this._hideCollectBar();
+    }
 
     if (this.ultiUsed && this.ultiCooldown > 0) {
       this.ultiCooldown -= dt;

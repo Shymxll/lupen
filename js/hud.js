@@ -80,3 +80,22 @@ GameScene.prototype._updateWeightHUD = function() {
     fill.style.background = color;
   }
 };
+
+GameScene.prototype._updateCollectBar = function(item, progress) {
+  if (!this.collectBarGfx) {
+    this.collectBarGfx = this.add.graphics().setDepth(60);
+    this.uiCam.ignore(this.collectBarGfx);
+  }
+  const g = this.collectBarGfx;
+  g.clear();
+  const bw = 32, bh = 5;
+  const bx = item.x - bw / 2, by = item.y - 22;
+  g.fillStyle(0x222222, 0.85);
+  g.fillRect(bx, by, bw, bh);
+  g.fillStyle(0x00ff66, 1);
+  g.fillRect(bx, by, bw * Math.min(progress, 1), bh);
+};
+
+GameScene.prototype._hideCollectBar = function() {
+  if (this.collectBarGfx) this.collectBarGfx.clear();
+};

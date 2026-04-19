@@ -74,32 +74,9 @@ GameScene.prototype._makeEntities = function() {
 
   this.physics.add.collider(this.player, this.walls);
 
-  // Item pickup
-  this.physics.add.overlap(this.player, this.itemGroup, (_, item) => {
-    if (this.caught || this.won) return;
-    this.tweens.killTweensOf(item);
-    if (this.itemGlows[item.itemId]) {
-      this.tweens.killTweensOf(this.itemGlows[item.itemId]);
-      this.itemGlows[item.itemId].destroy();
-      delete this.itemGlows[item.itemId];
-    }
-    item.destroy();
-    this.collected++;
-    this.inventory.push(ITEM_DATA.find(d => d.id === item.itemId));
-    this.totalWeight += item.itemWeight;
-    this.lastItemPos = { x: this.player.x, y: this.player.y };
-    this._updateItemHUD();
+  // Item pickup handled via hold-E in update() — no auto-collect here
 
-    if (this.collected >= 5) {
-      this.tweens.killTweensOf(this.exitDoor);
-      this.exitDoor.setAlpha(1);
-      this.exitLabel.setColor('#00ff66');
-      this.exitLabel.setText('EXIT ←');
-      this.tweens.add({ targets: this.exitDoor, alpha: 0.55, duration: 450, yoyo: true, repeat: -1 });
-    }
-  });
-
-  // Exit door overlap (win)
+  // Exit door overlap (win) — collection is done via _collectItem called from update()
   this.physics.add.overlap(this.player, this.exitDoor, () => {
     if (this.collected >= 5 && !this.won && !this.caught && !this.doorClosed) {
       this.won = true;
@@ -107,4 +84,28 @@ GameScene.prototype._makeEntities = function() {
       this._end('YOU WIN!', '#33ff88', score);
     }
   });
+};
+
+GameScene.prototype._collectItem = function(item) {
+  if (!item || !item.active) return;
+  this.tweens.killTweensOf(item);
+  if (this.itemGlows[item.itemId]) {
+    this.tweens.killTweensOf(this.itemGlows[item.itemId]);
+    this.itemGlows[item.itemId].destroy();
+    delete this.itemGlows[item.itemId];
+  }
+  item.destroy();
+  this.collected++;
+  this.inventory.push(ITEM_DATA.find(d => d.id === item.itemId));
+  this.totalWeight += item.itemWeight;
+  this.lastItemPos = { x: this.player.x, y: this.player.y };
+  this._updateItemHUD();
+
+  if (this.collected >= 5) {
+    this.tweens.killTweensOf(this.exitDoor);
+    this.exitDoor.setAlpha(1);
+    this.exitLabel.setColor('#00ff66');
+    this.exitLabel.setText('EXIT ←');
+    this.tweens.add({ targets: this.exitDoor, alpha: 0.55, duration: 450, yoyo: true, repeat: -1 });
+  }
 };
