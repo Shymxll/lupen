@@ -8,10 +8,11 @@ GameScene.prototype._makeHUD = function() {
   this.stBg   = push(this.add.rectangle(85, 18, 150, 10, 0x0e0e22).setDepth(d));
   this.stFill = push(this.add.rectangle(10, 18, 150, 10, 0x22cc55).setDepth(d + 1).setOrigin(0, 0.5));
 
-  this.itemTxt    = push(this.add.text(10, 30, 'ITEMS: 0 / 3', { fontSize: '11px', color: '#ffcc00', fontFamily: 'monospace' }).setDepth(d));
-  this.targetsTxt = push(this.add.text(10, 44, 'Targets: …',   { fontSize: '11px', color: '#44ffff', fontFamily: 'monospace' }).setDepth(d));
+  this.itemTxt    = push(this.add.text(10, 30, 'ITEMS: 0 / 5', { fontSize: '11px', color: '#ffcc00', fontFamily: 'monospace' }).setDepth(d));
+  this.weightTxt  = push(this.add.text(10, 44, 'WEIGHT: 0 / 22', { fontSize: '11px', color: '#22cc55', fontFamily: 'monospace' }).setDepth(d));
+  this.targetsTxt = push(this.add.text(10, 58, 'Targets: …',   { fontSize: '11px', color: '#44ffff', fontFamily: 'monospace' }).setDepth(d));
 
-  this.heartsTxt  = push(this.add.text(10, 60, '♥♥♥', {
+  this.heartsTxt  = push(this.add.text(10, 74, '♥♥♥', {
     fontSize: '18px', color: '#ff3355', fontFamily: 'monospace'
   }).setDepth(d));
 
@@ -53,7 +54,13 @@ GameScene.prototype._updateTimerHUD = function() {
 };
 
 GameScene.prototype._updateItemHUD = function() {
-  if (this.collected < 3) {
-    this.itemTxt.setText(`ITEMS: ${this.collected} / 3`);
+  if (this.collected < 5) {
+    this.itemTxt.setText(`ITEMS: ${this.collected} / 5`);
   }
+};
+
+GameScene.prototype._updateWeightHUD = function() {
+  const w = this.totalWeight;
+  const color = w === 0 ? '#22cc55' : w <= 7 ? '#ffaa22' : '#ff3333';
+  this.weightTxt.setText(`WEIGHT: ${w} / 22`).setColor(color);
 };

@@ -6,6 +6,54 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div id="layout">
+  <div id="info-panel">
+    <div class="panel-title">LUPEN</div>
+
+    <div class="info-block">
+      <div class="label">SÜRE</div>
+      <div id="hud-timer" class="value time">60</div>
+    </div>
+
+    <div class="info-block">
+      <div class="label">CAN</div>
+      <div id="hud-hearts" class="value hearts">♥♥♥</div>
+    </div>
+
+    <div class="info-block">
+      <div class="label">EŞYALAR</div>
+      <div id="hud-items" class="value">0 / 3</div>
+    </div>
+
+    <div class="info-block">
+      <div class="label">HEDEFLER</div>
+      <div id="hud-targets" class="value cyan">…</div>
+    </div>
+
+    <div class="info-block">
+      <div class="label">STAMINA</div>
+      <div id="hud-stamina-bg">
+        <div id="hud-stamina-fill"></div>
+      </div>
+    </div>
+
+    <div class="info-block">
+      <div id="hud-ulti" class="value ulti">Q: ULTI [READY]</div>
+    </div>
+
+    <div id="hud-alert"></div>
+
+    <div class="controls">
+      <div class="label" style="margin-bottom:6px">KONTROLLER</div>
+      <div>WASD — hareket</div>
+      <div>SHIFT — sprint</div>
+      <div>Q — ulti</div>
+      <div>R — yeniden başlat</div>
+    </div>
+  </div>
+  <div id="game-panel"></div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/pathfinding.js"></script>

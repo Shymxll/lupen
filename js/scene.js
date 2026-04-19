@@ -4,8 +4,9 @@ class GameScene extends Phaser.Scene {
   create() {
     this.caught    = false;
     this.won       = false;
-    this.collected = 0;
-    this.stamina   = 100;
+    this.collected   = 0;
+    this.totalWeight = 0;
+    this.stamina     = 100;
     this.alertTimer = 0;
 
     this.lives       = 3;
@@ -40,7 +41,13 @@ class GameScene extends Phaser.Scene {
       .setZoom(2);
     this.cameras.main.ignore(this._hudObjects);
 
-    this.uiCam = this.cameras.add(0, 0, COLS * T, ROWS * T).setScroll(0, 0).setName('ui');
+    this.uiCam = this.cameras.add(0, 0, this.scale.width, this.scale.height).setScroll(0, 0).setName('ui');
+
+    this.scale.on('resize', (gameSize) => {
+      const w = gameSize.width, h = gameSize.height;
+      this.cameras.main.setSize(w, h);
+      this.uiCam.setSize(w, h);
+    });
     this.uiCam.ignore([
       ...this.floorTiles,
       this.walls,
@@ -85,7 +92,7 @@ class GameScene extends Phaser.Scene {
   }
 
   _activateUlti() {
-    this.cameras.main.zoomTo(1, 400);
+    this.cameras.main.zoomTo(1.2, 400);
     this.ultiUsed = true;
     this.ultiCooldown = 10;
     this.ultraActive = true;
@@ -187,7 +194,8 @@ class GameScene extends Phaser.Scene {
       ? Math.max(0, this.stamina - 28 * dt)
       : Math.min(100, this.stamina + 20 * dt);
 
-    const spd = sprinting ? 195 : 115;
+    const wMult = Math.max(0.5, 1 - this.totalWeight / 44);
+    const spd = (sprinting ? 195 : 115) * wMult;
     let vx = 0, vy = 0;
     if (this.keys.left.isDown)       vx = -1;
     else if (this.keys.right.isDown) vx =  1;
@@ -243,9 +251,10 @@ class GameScene extends Phaser.Scene {
     this.stFill.setSize(150 * pct, 10);
     this.stFill.setFillStyle(pct > 0.5 ? 0x22cc55 : pct > 0.25 ? 0xffaa22 : 0xff3333);
 
-    if (this.collected < 3) {
-      this.itemTxt.setText(`ITEMS: ${this.collected} / 3`);
+    if (this.collected < 5) {
+      this.itemTxt.setText(`ITEMS: ${this.collected} / 5`);
     }
+    this._updateWeightHUD();
 
     const minDist = Math.min(...this.policeList.map(c => Math.hypot(this.player.x - c.x, this.player.y - c.y)));
     if (minDist < 160) this.alertTimer = 2;

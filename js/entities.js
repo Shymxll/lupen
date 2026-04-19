@@ -16,9 +16,11 @@ GameScene.prototype._makeMap = function() {
 
 GameScene.prototype._makeEntities = function() {
   const ITEM_DATA = [
-    { id: 0, col: 11, row: 2,  weight: 4, value: 7 },
-    { id: 1, col: 17, row: 7,  weight: 6, value: 9 },
-    { id: 2, col: 3,  row: 12, weight: 3, value: 5 },
+    { id: 0, col: 11, row: 2,  weight: 1, value: 3,  color: 0xffdd00, name: 'Topaz'  },
+    { id: 1, col: 17, row: 7,  weight: 2, value: 6,  color: 0x00ff66, name: 'Zümrüt' },
+    { id: 2, col: 3,  row: 12, weight: 4, value: 9,  color: 0xff3333, name: 'Yakut'  },
+    { id: 3, col: 7,  row: 8,  weight: 6, value: 13, color: 0x3399ff, name: 'Safir'  },
+    { id: 4, col: 17, row: 12, weight: 9, value: 20, color: 0xffffff, name: 'Elmas'  },
   ];
 
   // Items
@@ -30,6 +32,8 @@ GameScene.prototype._makeEntities = function() {
     const item = this.itemGroup.create(data.col * T + T / 2, data.row * T + T / 2, 'item');
     item.body.setSize(16, 16); item.refreshBody();
     item.itemId = data.id;
+    item.itemWeight = data.weight;
+    item.setTint(data.color);
     this.itemSprites[data.id] = item;
     this.tweens.add({
       targets: item, scaleX: 1.18, scaleY: 1.18,
@@ -37,7 +41,7 @@ GameScene.prototype._makeEntities = function() {
     });
   });
 
-  this._solveKnapsack(ITEM_DATA, 10);
+  this._solveKnapsack(ITEM_DATA, 15);
 
   // Exit door — col 5, row 1
   this.exitDoor = this.physics.add.staticSprite(T * 5.5, T * 1.5, 'exit');
@@ -80,10 +84,11 @@ GameScene.prototype._makeEntities = function() {
     }
     item.destroy();
     this.collected++;
+    this.totalWeight += item.itemWeight;
     this.lastItemPos = { x: this.player.x, y: this.player.y };
     this._updateItemHUD();
 
-    if (this.collected >= 3) {
+    if (this.collected >= 5) {
       this.tweens.killTweensOf(this.exitDoor);
       this.exitDoor.setAlpha(1);
       this.exitLabel.setColor('#00ff66');
@@ -95,7 +100,7 @@ GameScene.prototype._makeEntities = function() {
 
   // Exit door overlap (win)
   this.physics.add.overlap(this.player, this.exitDoor, () => {
-    if (this.collected >= 3 && !this.won && !this.caught && !this.doorClosed) {
+    if (this.collected >= 5 && !this.won && !this.caught && !this.doorClosed) {
       this.won = true;
       const score = this.collected * 100 + this.lives * 200;
       this._end('YOU WIN!', '#33ff88', score);
