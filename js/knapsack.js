@@ -44,13 +44,6 @@ GameScene.prototype._highlightTargets = function(ids) {
   ids.forEach(id => {
     const sprite = this.itemSprites[id];
     if (!sprite || !sprite.active) return;
-    sprite.setTint(0x44ffff);
-    const ring = this.add.circle(sprite.x, sprite.y, 14, 0x00eeff, 0.45).setDepth(5);
-    this.tweens.add({
-      targets: ring, alpha: 0, scaleX: 2.2, scaleY: 2.2,
-      duration: 900, repeat: -1, ease: 'Quad.easeOut',
-    });
-    this.itemGlows[id] = ring;
   });
   this.targetsTxt.setText(`Hedef: ${ids.length} mücevher`);
 };
