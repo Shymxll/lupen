@@ -9,6 +9,7 @@ class GameScene extends Phaser.Scene {
     this.load.image('yakut',    'assets/yakut.png');
     this.load.image('sapphire', 'assets/sapphere.png');
     this.load.image('diamond',  'assets/diamond.png');
+    this.load.audio('bgmusic',  'assets/Ludwig van Beethoven - Turkish March, from The Ruins of Athens (piano solo version).mp3');
   }
 
   create() {
@@ -164,6 +165,7 @@ class GameScene extends Phaser.Scene {
   }
 
   _end(msg, color) {
+    if (this.bgMusic) this.bgMusic.stop();
     this.player.setVelocity(0, 0);
     this.policeList.forEach(cop => {
       cop.setVelocity(0, 0);
@@ -369,6 +371,10 @@ class GameScene extends Phaser.Scene {
     const minDist = Math.min(...this.policeList.map(c => Math.hypot(this.player.x - c.x, this.player.y - c.y)));
     if (minDist < 22) this._onCatch();
     if (minDist < 160) this.alertTimer = 2;
+    if (this.bgMusic && this.bgMusic.isPlaying) {
+      const targetRate = minDist < 160 ? 2 : 1;
+      if (this.bgMusic.rate !== targetRate) this.bgMusic.setRate(targetRate);
+    }
     if (this.alertTimer > 0) {
       this.alertTimer -= dt;
       this.alertTxt.setText('!! POLICE NEARBY !!');
@@ -467,5 +473,9 @@ GameScene.prototype._showPregameOverlay = function() {
     overlay.style.display = 'none';
     this.gameStarted = true;
     this.physics.resume();
+    if (!this.bgMusic) {
+      this.bgMusic = this.sound.add('bgmusic', { loop: true, volume: 0.7 });
+    }
+    this.bgMusic.play();
   };
 };
