@@ -1,3 +1,11 @@
+const ITEM_DATA = [
+  { id: 0, col: 11, row: 2,  weight: 1, value: 3,  color: 0xffdd00, name: 'Topaz'  },
+  { id: 1, col: 17, row: 7,  weight: 2, value: 6,  color: 0x00ff66, name: 'Zümrüt' },
+  { id: 2, col: 3,  row: 12, weight: 4, value: 9,  color: 0xff3333, name: 'Yakut'  },
+  { id: 3, col: 7,  row: 8,  weight: 6, value: 13, color: 0x3399ff, name: 'Safir'  },
+  { id: 4, col: 17, row: 12, weight: 9, value: 20, color: 0xffffff, name: 'Elmas'  },
+];
+
 GameScene.prototype._makeMap = function() {
   this.walls = this.physics.add.staticGroup();
   this.floorTiles = [];
@@ -15,13 +23,6 @@ GameScene.prototype._makeMap = function() {
 };
 
 GameScene.prototype._makeEntities = function() {
-  const ITEM_DATA = [
-    { id: 0, col: 11, row: 2,  weight: 1, value: 3,  color: 0xffdd00, name: 'Topaz'  },
-    { id: 1, col: 17, row: 7,  weight: 2, value: 6,  color: 0x00ff66, name: 'Zümrüt' },
-    { id: 2, col: 3,  row: 12, weight: 4, value: 9,  color: 0xff3333, name: 'Yakut'  },
-    { id: 3, col: 7,  row: 8,  weight: 6, value: 13, color: 0x3399ff, name: 'Safir'  },
-    { id: 4, col: 17, row: 12, weight: 9, value: 20, color: 0xffffff, name: 'Elmas'  },
-  ];
 
   // Items
   this.itemGroup   = this.physics.add.staticGroup();
@@ -84,6 +85,7 @@ GameScene.prototype._makeEntities = function() {
     }
     item.destroy();
     this.collected++;
+    this.inventory.push(ITEM_DATA.find(d => d.id === item.itemId));
     this.totalWeight += item.itemWeight;
     this.lastItemPos = { x: this.player.x, y: this.player.y };
     this._updateItemHUD();
@@ -94,7 +96,6 @@ GameScene.prototype._makeEntities = function() {
       this.exitLabel.setColor('#00ff66');
       this.exitLabel.setText('EXIT ←');
       this.tweens.add({ targets: this.exitDoor, alpha: 0.55, duration: 450, yoyo: true, repeat: -1 });
-      this.itemTxt.setText('ALL ITEMS → EXIT!');
     }
   });
 

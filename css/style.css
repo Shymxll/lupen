@@ -95,3 +95,199 @@ body {
   width: 100% !important;
   height: 100% !important;
 }
+
+/* ── Bag slots (HUD) ── */
+#hud-bag-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.bag-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-family: monospace;
+  min-height: 24px;
+}
+
+.bag-slot.filled {
+  background: #0d0d2a;
+  color: #ccccdd;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.bag-slot.empty {
+  background: #0a0a1a;
+  border: 1px dashed #1a1a3a;
+}
+
+.bag-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bag-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Hacim bar (HUD) ── */
+#hud-vol-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: #0e0e22;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+#hud-vol-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: #22cc55;
+  border-radius: 3px;
+  transition: width 0.2s, background 0.2s;
+}
+
+/* ── Pregame overlay ── */
+#pregame-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+}
+
+#pregame-modal {
+  background: #07071a;
+  border: 1px solid #1a1a4a;
+  border-radius: 8px;
+  padding: 32px 36px;
+  max-width: 480px;
+  width: 90%;
+  max-height: 88vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: #ccccdd;
+}
+
+.pg-title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 6px;
+  text-align: center;
+  border-bottom: 1px solid #1a1a3a;
+  padding-bottom: 14px;
+}
+
+.pg-desc {
+  font-size: 13px;
+  color: #8888aa;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.pg-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pg-section-title {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #44446a;
+  margin-bottom: 2px;
+}
+
+.pg-text {
+  font-size: 12px;
+  color: #8888aa;
+  line-height: 1.6;
+}
+
+.pg-text strong {
+  color: #ccccdd;
+}
+
+/* Jewel cards in pregame overlay */
+#pg-jewel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jewel-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #0d0d2a;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.jewel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.jewel-name {
+  flex: 1;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.jewel-stat {
+  color: #55557a;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Controls in pregame overlay */
+.pg-ctrl-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  color: #44446a;
+}
+
+/* Start button */
+#pregame-start-btn {
+  margin-top: 4px;
+  padding: 12px 0;
+  background: #0f4a2a;
+  color: #33ff88;
+  border: 1px solid #33ff88;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#pregame-start-btn:hover {
+  background: #1a6640;
+}

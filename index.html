@@ -21,8 +21,8 @@
     </div>
 
     <div class="info-block">
-      <div class="label">EŞYALAR</div>
-      <div id="hud-items" class="value">0 / 3</div>
+      <div class="label">ÇANTA</div>
+      <div id="hud-bag-slots"></div>
     </div>
 
     <div class="info-block">
@@ -31,9 +31,14 @@
     </div>
 
     <div class="info-block">
-      <div class="label">AĞIRLIK</div>
+      <div class="label">HACİM</div>
+      <div id="hud-vol-bar-wrap">
+        <div id="hud-vol-bar-fill"></div>
+      </div>
       <div id="hud-weight" class="value" style="color:#22cc55;font-size:14px">0 / 22</div>
     </div>
+
+    <div id="hud-items" style="display:none"></div>
 
     <div class="info-block">
       <div class="label">STAMINA</div>
@@ -57,6 +62,35 @@
     </div>
   </div>
   <div id="game-panel"></div>
+</div>
+
+<div id="pregame-overlay">
+  <div id="pregame-modal">
+    <div class="pg-title">LUPEN</div>
+    <p class="pg-desc">Polis seni yakalamadan mücevverleri topla ve çıkışa ulaş!</p>
+
+    <div class="pg-section">
+      <div class="pg-section-title">ÇANTA</div>
+      <p class="pg-text">Maksimum hacim: <strong>22</strong> — Ağırlık fazlalaştıkça hareketlerin yavaşlar.</p>
+    </div>
+
+    <div class="pg-section">
+      <div class="pg-section-title">MÜCEVVERLERİ</div>
+      <div id="pg-jewel-list"></div>
+    </div>
+
+    <div class="pg-section pg-controls">
+      <div class="pg-section-title">KONTROLLER</div>
+      <div class="pg-ctrl-row">
+        <span>WASD — hareket</span>
+        <span>SHIFT — sprint</span>
+        <span>Q — ulti</span>
+        <span>R — yeniden başlat</span>
+      </div>
+    </div>
+
+    <button id="pregame-start-btn">OYUNA BAŞLA</button>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>

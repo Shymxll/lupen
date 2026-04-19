@@ -50,8 +50,23 @@ GameScene.prototype._updateTimerHUD = function() {
 };
 
 GameScene.prototype._updateItemHUD = function() {
-  if (this.collected < 5) {
-    this.itemTxt.setText(`${this.collected} / 5`);
+  const slotsEl = document.getElementById('hud-bag-slots');
+  if (!slotsEl) return;
+  slotsEl.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const div = document.createElement('div');
+    const item = this.inventory[i];
+    if (item) {
+      const hex = '#' + item.color.toString(16).padStart(6, '0');
+      div.className = 'bag-slot filled';
+      div.style.borderColor = hex;
+      div.innerHTML =
+        `<span class="bag-dot" style="background:${hex}"></span>` +
+        `<span class="bag-name">${item.name}</span>`;
+    } else {
+      div.className = 'bag-slot empty';
+    }
+    slotsEl.appendChild(div);
   }
 };
 
@@ -59,4 +74,9 @@ GameScene.prototype._updateWeightHUD = function() {
   const w = this.totalWeight;
   const color = w === 0 ? '#22cc55' : w <= 7 ? '#ffaa22' : '#ff3333';
   this.weightTxt.setText(`${w} / 22`).setColor(color);
+  const fill = document.getElementById('hud-vol-bar-fill');
+  if (fill) {
+    fill.style.width = (w / 22 * 100) + '%';
+    fill.style.background = color;
+  }
 };

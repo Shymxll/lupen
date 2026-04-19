@@ -4,7 +4,9 @@ class GameScene extends Phaser.Scene {
   create() {
     this.caught    = false;
     this.won       = false;
+    this.gameStarted = false;
     this.collected   = 0;
+    this.inventory   = [];
     this.totalWeight = 0;
     this.stamina     = 100;
     this.alertTimer = 0;
@@ -58,6 +60,8 @@ class GameScene extends Phaser.Scene {
       ...this.policeList,
       this.ultiGraphics,
     ]);
+
+    this._showPregameOverlay();
   }
 
   _onCatch() {
@@ -156,7 +160,7 @@ class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    if (this.caught || this.won) return;
+    if (!this.gameStarted || this.caught || this.won) return;
     const dt = delta / 1000;
 
     if (this.ultiUsed && this.ultiCooldown > 0) {
@@ -251,9 +255,6 @@ class GameScene extends Phaser.Scene {
     this.stFill.setSize(150 * pct, 10);
     this.stFill.setFillStyle(pct > 0.5 ? 0x22cc55 : pct > 0.25 ? 0xffaa22 : 0xff3333);
 
-    if (this.collected < 5) {
-      this.itemTxt.setText(`ITEMS: ${this.collected} / 5`);
-    }
     this._updateWeightHUD();
 
     const minDist = Math.min(...this.policeList.map(c => Math.hypot(this.player.x - c.x, this.player.y - c.y)));
@@ -269,3 +270,30 @@ class GameScene extends Phaser.Scene {
     }
   }
 }
+
+GameScene.prototype._showPregameOverlay = function() {
+  this.physics.pause();
+  const overlay = document.getElementById('pregame-overlay');
+  overlay.style.display = 'flex';
+
+  const list = document.getElementById('pg-jewel-list');
+  list.innerHTML = '';
+  ITEM_DATA.forEach(item => {
+    const hex = '#' + item.color.toString(16).padStart(6, '0');
+    const card = document.createElement('div');
+    card.className = 'jewel-card';
+    card.style.borderLeftColor = hex;
+    card.innerHTML =
+      `<span class="jewel-dot" style="background:${hex}"></span>` +
+      `<span class="jewel-name">${item.name}</span>` +
+      `<span class="jewel-stat">Hacim: ${item.weight}</span>` +
+      `<span class="jewel-stat">Değer: ${item.value}</span>`;
+    list.appendChild(card);
+  });
+
+  document.getElementById('pregame-start-btn').onclick = () => {
+    overlay.style.display = 'none';
+    this.gameStarted = true;
+    this.physics.resume();
+  };
+};
