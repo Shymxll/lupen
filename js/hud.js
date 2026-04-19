@@ -20,6 +20,7 @@ GameScene.prototype._makeHUD = function() {
   this.targetsTxt = txtEl('hud-targets');
   this.heartsTxt  = txtEl('hud-hearts');
   this.ultiTxt    = txtEl('hud-ulti');
+  this.fTxt       = txtEl('hud-fskill');
   this.alertTxt   = txtEl('hud-alert');
   this.timerTxt   = txtEl('hud-timer');
 
@@ -38,6 +39,16 @@ GameScene.prototype._updateUltiHUD = function() {
   } else {
     this.ultiTxt.setText('Q: ULTI [READY]');
     this.ultiTxt.setColor('#ff4444');
+  }
+};
+
+GameScene.prototype._updateFSkillHUD = function() {
+  if (!this.fSkillUnlocked) {
+    this.fTxt.setText('F: REVEAL [KİLİTLİ]').setColor('#444444');
+  } else if (this.fSkillUsed) {
+    this.fTxt.setText(`F: REVEAL [${Math.ceil(this.fSkillCooldown)}s]`).setColor('#444444');
+  } else {
+    this.fTxt.setText('F: REVEAL [HAZIR]').setColor('#ffdd00');
   }
 };
 

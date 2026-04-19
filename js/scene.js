@@ -24,6 +24,13 @@ class GameScene extends Phaser.Scene {
     this.ultiCooldown = 0;
     this.ultraActive = false;
 
+    this.fSkillUnlocked = false;
+    this.fSkillUsed     = false;
+    this.fSkillCooldown = 0;
+    this.fActive        = false;
+    this.fGlows         = {};
+    this.fRings         = {};
+
     this.playerSpotted = false;
     this.timeLeft  = 90;
     this.doorClosed = false;
@@ -44,6 +51,7 @@ class GameScene extends Phaser.Scene {
       sprint:   Phaser.Input.Keyboard.KeyCodes.SHIFT,
       ulti:     'Q',
       interact: 'E',
+      reveal:   'F',
     });
     this.nearbyItem    = null;
     this.collectProgress = 0;
@@ -96,6 +104,17 @@ class GameScene extends Phaser.Scene {
       this.policeList.forEach(cop => { cop.body.moves = true; });
     }
     this._updateUltiHUD();
+
+    if (this.fActive) {
+      this.fActive = false;
+      this._clearFGlows();
+      this.policeList.forEach(cop => {
+        if (cop._fSavedVel) { cop.body.moves = true; cop._fSavedVel = null; }
+      });
+    }
+    this.fSkillCooldown = 0;
+    this.fSkillUsed = false;
+    this._updateFSkillHUD();
 
     this.invincible = true;
     this.time.delayedCall(1500, () => { this.invincible = false; });
@@ -235,6 +254,23 @@ class GameScene extends Phaser.Scene {
       this._activateUlti();
     }
 
+    if (this.fSkillUsed && this.fSkillCooldown > 0) {
+      this.fSkillCooldown -= dt;
+      if (this.fSkillCooldown <= 0) {
+        this.fSkillCooldown = 0;
+        this.fSkillUsed = false;
+        this._updateFSkillHUD();
+      } else {
+        this._updateFSkillHUD();
+      }
+    }
+
+    if (this.fSkillUnlocked && !this.fSkillUsed && !this.fActive) {
+      if (Phaser.Input.Keyboard.JustDown(this.keys.reveal)) {
+        this._activateReveal();
+      }
+    }
+
     if (this.ultraActive) {
       this.ultiGraphics.clear();
       this.ultiGraphics.lineStyle(2, 0xff2222, 0.85);
@@ -308,6 +344,17 @@ class GameScene extends Phaser.Scene {
       this._updateTimerHUD();
     }
 
+    if (!this.fSkillUnlocked && this.timeLeft <= 75) {
+      this.fSkillUnlocked = true;
+      this._updateFSkillHUD();
+      const notif = this.add.text(
+        this.scale.width / 2, this.scale.height - 60,
+        'F YETENEĞİ AÇILDI!',
+        { fontSize: '16px', color: '#ffdd00', fontFamily: 'monospace', fontStyle: 'bold', stroke: '#000', strokeThickness: 3 }
+      ).setScrollFactor(0).setDepth(200).setOrigin(0.5);
+      this.tweens.add({ targets: notif, alpha: 0, y: notif.y - 30, duration: 2500, ease: 'Quad.easeIn', onComplete: () => notif.destroy() });
+    }
+
     const pct = this.stamina / 100;
     this.stFill.setSize(150 * pct, 10);
     this.stFill.setFillStyle(pct > 0.5 ? 0x22cc55 : pct > 0.25 ? 0xffaa22 : 0xff3333);
@@ -315,6 +362,7 @@ class GameScene extends Phaser.Scene {
     this._updateWeightHUD();
 
     const minDist = Math.min(...this.policeList.map(c => Math.hypot(this.player.x - c.x, this.player.y - c.y)));
+    if (minDist < 22) this._onCatch();
     if (minDist < 160) this.alertTimer = 2;
     if (this.alertTimer > 0) {
       this.alertTimer -= dt;
@@ -327,6 +375,65 @@ class GameScene extends Phaser.Scene {
     }
   }
 }
+
+GameScene.prototype._activateReveal = function() {
+  const uncollected = (this.optimalIds || []).filter(
+    id => this.itemSprites[id] && this.itemSprites[id].active
+  );
+  if (uncollected.length === 0) return;
+
+  this.fSkillUsed = true;
+  this.fSkillCooldown = 20;
+  this.fActive = true;
+  this._updateFSkillHUD();
+
+  this.policeList.forEach(cop => {
+    cop._fSavedVel = { x: cop.body.velocity.x, y: cop.body.velocity.y };
+    cop.setVelocity(0, 0);
+    cop.body.moves = false;
+  });
+  this.time.delayedCall(2000, () => {
+    if (!this.caught && !this.won) {
+      this.policeList.forEach(cop => {
+        cop.body.moves = true;
+        if (cop._fSavedVel) { cop.setVelocity(cop._fSavedVel.x, cop._fSavedVel.y); cop._fSavedVel = null; }
+      });
+    }
+  });
+
+  uncollected.forEach(id => {
+    const sprite = this.itemSprites[id];
+    sprite.setTint(0xffdd00);
+    this.fGlows[id] = this.tweens.add({
+      targets: sprite, alpha: 0.1, duration: 200,
+      yoyo: true, repeat: -1, ease: 'Linear',
+    });
+    const ring = this.add.circle(sprite.x, sprite.y, 18, 0xffdd00, 0.55).setDepth(6);
+    this.uiCam.ignore(ring);
+    this.tweens.add({ targets: ring, alpha: 0, scaleX: 2.8, scaleY: 2.8, duration: 500, repeat: -1, ease: 'Quad.easeOut' });
+    this.fRings[id] = ring;
+  });
+
+  this.time.delayedCall(5000, () => {
+    if (this.fActive) {
+      this._clearFGlows();
+      this.fActive = false;
+      this._updateFSkillHUD();
+    }
+  });
+};
+
+GameScene.prototype._clearFGlows = function() {
+  Object.keys(this.fGlows).forEach(id => {
+    const tw = this.fGlows[id];
+    if (tw) tw.stop();
+    const sp = this.itemSprites[id];
+    if (sp && sp.active) { sp.setAlpha(1); sp.clearTint(); }
+  });
+  this.fGlows = {};
+  Object.values(this.fRings).forEach(r => { if (r) r.destroy(); });
+  this.fRings = {};
+};
 
 GameScene.prototype._showPregameOverlay = function() {
   this.physics.pause();

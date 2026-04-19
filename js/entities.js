@@ -74,7 +74,6 @@ GameScene.prototype._makeEntities = function() {
     cop.setCollideWorldBounds(true);
     cop.body.setSize(18, 18);
     this.physics.add.collider(cop, this.walls);
-    this.physics.add.overlap(this.player, cop, () => this._onCatch());
   });
 
   // ULTI lines graphics layer
@@ -93,11 +92,23 @@ GameScene.prototype._makeEntities = function() {
 
 GameScene.prototype._collectItem = function(item) {
   if (!item || !item.active) return;
+  if (this.totalWeight + item.itemWeight > 22) {
+    this._showBagFullWarning();
+    return;
+  }
   this.tweens.killTweensOf(item);
   if (this.itemGlows[item.itemId]) {
     this.tweens.killTweensOf(this.itemGlows[item.itemId]);
     this.itemGlows[item.itemId].destroy();
     delete this.itemGlows[item.itemId];
+  }
+  if (this.fGlows && this.fGlows[item.itemId]) {
+    this.fGlows[item.itemId].stop();
+    delete this.fGlows[item.itemId];
+  }
+  if (this.fRings && this.fRings[item.itemId]) {
+    this.fRings[item.itemId].destroy();
+    delete this.fRings[item.itemId];
   }
   item.destroy();
   this.collected++;
@@ -113,4 +124,21 @@ GameScene.prototype._collectItem = function(item) {
     this.exitLabel.setText('EXIT ←');
     this.tweens.add({ targets: this.exitDoor, alpha: 0.55, duration: 450, yoyo: true, repeat: -1 });
   }
+};
+
+GameScene.prototype._showBagFullWarning = function() {
+  if (this._bagFullWarning) return;
+  const cam = this.cameras.main;
+  this._bagFullWarning = this.add.text(
+    cam.width / 2, 80,
+    'Çanta dolu!',
+    { fontSize: '22px', color: '#ff3333', fontStyle: 'bold', stroke: '#000', strokeThickness: 4 }
+  ).setOrigin(0.5).setScrollFactor(0).setDepth(200);
+
+  this.time.delayedCall(1200, () => {
+    if (this._bagFullWarning) {
+      this._bagFullWarning.destroy();
+      this._bagFullWarning = null;
+    }
+  });
 };
