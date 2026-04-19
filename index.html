@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lupen</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+const T = 40;
+const COLS = 20;
+const ROWS = 15;
+
+// 0 = floor, 1 = wall
+const MAP = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+  [1,0,1,1,0,0,1,0,1,1,1,0,1,0,1,0,1,1,0,1],
+  [1,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,1,0,1],
+  [1,0,0,0,1,1,1,1,0,0,1,0,0,0,1,1,0,0,0,1],
+  [1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,0,0,1,0,1],
+  [1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1],
+  [1,0,1,1,0,0,0,1,1,0,1,1,1,0,1,0,0,0,0,1],
+  [1,0,0,0,0,1,0,0,1,0,0,0,1,0,1,1,0,1,0,1],
+  [1,1,0,1,0,1,0,0,0,0,1,0,0,0,0,1,0,1,0,1],
+  [1,0,0,1,0,0,0,1,1,0,1,1,0,1,0,0,0,0,0,1],
+  [1,0,1,1,1,0,1,1,0,0,0,1,0,1,1,0,1,0,1,1],
+  [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+  [1,0,1,0,0,0,1,0,0,1,1,0,1,0,0,0,1,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+];
+
+class GameScene extends Phaser.Scene {
+  constructor() { super('GameScene'); }
+
+  create() {
+    this.caught = false;
+    this.won = false;
+    this.collected = 0;
+    this.stamina = 100;
+    this.alertTimer = 0;
+
+    this._makeTextures();
+    this._makeMap();
+    this._makeEntities();
+    this._makeHUD();
+
+    this.keys = this.input.keyboard.addKeys({
+      up: 'W', down: 'S', left: 'A', right: 'D',
+      sprint: Phaser.Input.Keyboard.KeyCodes.SHIFT
+    });
+
+    this.cameras.main
+      .setBounds(0, 0, COLS * T, ROWS * T)
+      .startFollow(this.player, true, 0.1, 0.1);
+  }
+
+  _makeTextures() {
+    let g;
+
+    // Floor tile — dark navy grid
+    g = this.make.graphics({ add: false });
+    g.fillStyle(0x0b0b18); g.fillRect(0, 0, T, T);
+    g.lineStyle(1, 0x111125, 1); g.strokeRect(0, 0, T, T);
+    g.generateTexture('floor', T, T); g.destroy();
+
+    // Wall tile — layered blue-grey bricks
+    g = this.make.graphics({ add: false });
+    g.fillStyle(0x18183a); g.fillRect(0, 0, T, T);
+    g.fillStyle(0x20204a); g.fillRect(2, 2, T-4, T-4);
+    g.fillStyle(0x282858); g.fillRect(5, 5, T-10, T-10);
+    g.lineStyle(1, 0x363688, 0.8); g.strokeRect(1, 1, T-2, T-2);
+    g.generateTexture('wall', T, T); g.destroy();
+
+    // Player — blue hooded figure
+    g = this.make.graphics({ add: false });
+    // shadow
+    g.fillStyle(0x000022, 0.4); g.fillEllipse(12, 22, 16, 5);
+    // body layers
+    g.fillStyle(0x1a5faa); g.fillCircle(12, 12, 11);
+    g.fillStyle(0x2880cc); g.fillCircle(12, 12, 8);
+    g.fillStyle(0x44a8ee); g.fillCircle(9, 8, 4);
+    g.generateTexture('player', 24, 24); g.destroy();
+
+    // Police — dark blue uniform with badge & cap stripe
+    g = this.make.graphics({ add: false });
+    // shadow
+    g.fillStyle(0x000022, 0.4); g.fillEllipse(13, 24, 18, 5);
+    // body
+    g.fillStyle(0x122860); g.fillCircle(13, 13, 12);
+    g.fillStyle(0x1b3d8a); g.fillCircle(13, 13, 9);
+    // red cap strip
+    g.fillStyle(0xcc1111); g.fillRect(6, 3, 14, 4);
+    // badge
+    g.fillStyle(0xffcc00); g.fillRect(9, 10, 8, 6);
+    g.fillStyle(0x1133bb); g.fillRect(10, 11, 6, 4);
+    // outline
+    g.lineStyle(1, 0x2255cc); g.strokeCircle(13, 13, 12);
+    g.generateTexture('police', 26, 28); g.destroy();
+
+    // Item — gold money bag
+    g = this.make.graphics({ add: false });
+    // glow
+    g.fillStyle(0xffee44, 0.10); g.fillCircle(12, 12, 11);
+    // knot on top
+    g.fillStyle(0x996600); g.fillCircle(12, 5, 4);
+    // bag body
+    g.fillStyle(0xb87700); g.fillEllipse(12, 14, 16, 14);
+    // bag face highlight
+    g.fillStyle(0xffaa00); g.fillEllipse(12, 13, 11, 10);
+    // sheen
+    g.fillStyle(0xffffff, 0.30); g.fillEllipse(9, 10, 5, 4);
+    g.generateTexture('item', 24, 24); g.destroy();
+  }
+
+  _makeMap() {
+    this.walls = this.physics.add.staticGroup();
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const x = c * T + T / 2, y = r * T + T / 2;
+        if (MAP[r][c] === 1) {
+          const w = this.walls.create(x, y, 'wall');
+          w.body.setSize(T, T); w.refreshBody();
+        } else {
+          this.add.image(x, y, 'floor');
+        }
+      }
+    }
+  }
+
+  _makeEntities() {
+    const ITEM_DATA = [
+      { id: 0, col: 11, row: 2,  weight: 4, value: 7 },
+      { id: 1, col: 17, row: 7,  weight: 6, value: 9 },
+      { id: 2, col: 3,  row: 12, weight: 3, value: 5 },
+    ];
+
+    // Items — all on verified floor tiles [col, row]
+    this.itemGroup = this.physics.add.staticGroup();
+    this.itemSprites = {};
+    this.itemGlows  = {};
+
+    ITEM_DATA.forEach(data => {
+      const item = this.itemGroup.create(data.col * T + T / 2, data.row * T + T / 2, 'item');
+      item.body.setSize(16, 16); item.refreshBody();
+      item.itemId = data.id;
+      this.itemSprites[data.id] = item;
+      // pulse scale tween (does not disturb physics body)
+      this.tweens.add({
+        targets: item, scaleX: 1.18, scaleY: 1.18,
+        duration: 750, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+      });
+    });
+
+    // Kick off knapsack optimisation (async, non-blocking)
+    this._solveKnapsack(ITEM_DATA, 10);
+
+    // Player — top-left open area
+    this.player = this.physics.add.sprite(T * 1.5, T * 1.5, 'player');
+    this.player.setCollideWorldBounds(true);
+    this.player.body.setSize(16, 16);
+
+    // Police — bottom-right open area
+    this.police = this.physics.add.sprite(T * 18.5, T * 13.5, 'police');
+    this.police.setCollideWorldBounds(true);
+    this.police.body.setSize(18, 18);
+
+    this.physics.add.collider(this.player, this.walls);
+    this.physics.add.collider(this.police, this.walls);
+
+    this.physics.add.overlap(this.player, this.itemGroup, (_, item) => {
+      this.tweens.killTweensOf(item);
+      // Remove glow ring if this was a highlighted target
+      if (this.itemGlows[item.itemId]) {
+        this.tweens.killTweensOf(this.itemGlows[item.itemId]);
+        this.itemGlows[item.itemId].destroy();
+        delete this.itemGlows[item.itemId];
+      }
+      item.destroy();
+      this.collected++;
+      if (this.collected >= 3 && !this.won) {
+        this.won = true;
+        this._end('ESCAPED!', '#33ff88');
+      }
+    });
+
+    this.physics.add.overlap(this.player, this.police, () => {
+      if (!this.caught && !this.won) {
+        this.caught = true;
+        this._end('BUSTED!', '#ff3344');
+      }
+    });
+  }
+
+  async _solveKnapsack(items, capacity) {
+    try {
+      const res = await fetch('http://localhost:5000/solve-knapsack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, capacity }),
+      });
+      const { selected_ids } = await res.json();
+      this._highlightTargets(selected_ids);
+    } catch (e) {
+      console.warn('Knapsack API unavailable — targets not highlighted.', e.message);
+    }
+  }
+
+  _highlightTargets(ids) {
+    if (!ids || ids.length === 0) return;
+    ids.forEach(id => {
+      const sprite = this.itemSprites[id];
+      if (!sprite || !sprite.active) return;
+
+      // Cyan tint to distinguish optimal targets
+      sprite.setTint(0x44ffff);
+
+      // Expanding ring that fades out repeatedly
+      const ring = this.add.circle(sprite.x, sprite.y, 14, 0x00eeff, 0.45).setDepth(5);
+      this.tweens.add({
+        targets: ring, alpha: 0, scaleX: 2.2, scaleY: 2.2,
+        duration: 900, repeat: -1, ease: 'Quad.easeOut',
+      });
+      this.itemGlows[id] = ring;
+    });
+
+    this.targetsTxt.setText(`Targets: ${ids.length} item${ids.length !== 1 ? 's' : ''}`);
+  }
+
+  _makeHUD() {
+    const d = 60;
+
+    // Stamina label
+    this.add.text(10, 10, 'STAMINA', { fontSize: '9px', color: '#44446a', fontFamily: 'monospace' })
+      .setScrollFactor(0).setDepth(d);
+
+    // Stamina background bar
+    this.stBg = this.add.rectangle(85, 18, 150, 10, 0x0e0e22)
+      .setScrollFactor(0).setDepth(d);
+
+    // Stamina fill bar — origin left-center so resize shrinks right
+    this.stFill = this.add.rectangle(10, 18, 150, 10, 0x22cc55)
+      .setScrollFactor(0).setDepth(d + 1).setOrigin(0, 0.5);
+
+    // Item counter
+    this.itemTxt = this.add.text(10, 32, 'ITEMS: 0 / 3', { fontSize: '11px', color: '#ffcc00', fontFamily: 'monospace' })
+      .setScrollFactor(0).setDepth(d);
+
+    // Knapsack targets hint (populated once API responds)
+    this.targetsTxt = this.add.text(10, 46, 'Targets: …', { fontSize: '11px', color: '#44ffff', fontFamily: 'monospace' })
+      .setScrollFactor(0).setDepth(d);
+
+    // Controls hint (bottom-left, barely visible)
+    this.add.text(10, ROWS * T - 18, 'WASD: move   SHIFT: sprint', { fontSize: '9px', color: '#22224a', fontFamily: 'monospace' })
+      .setScrollFactor(0).setDepth(d);
+
+    // Police proximity alert — centered top
+    this.alertTxt = this.add.text(COLS * T / 2, 10, '', { fontSize: '13px', color: '#ff3344', fontFamily: 'monospace', fontStyle: 'bold' })
+      .setScrollFactor(0).setDepth(d).setOrigin(0.5, 0);
+  }
+
+  _end(msg, color) {
+    const cx = COLS * T / 2, cy = ROWS * T / 2;
+    this.player.setVelocity(0, 0);
+    this.police.setVelocity(0, 0);
+    this.add.rectangle(cx, cy, 360, 150, 0x000000, 0.92)
+      .setScrollFactor(0).setDepth(200);
+    this.add.text(cx, cy - 30, msg, { fontSize: '48px', color, fontFamily: 'monospace', fontStyle: 'bold' })
+      .setScrollFactor(0).setDepth(201).setOrigin(0.5);
+    this.add.text(cx, cy + 26, 'Press  R  to restart', { fontSize: '14px', color: '#666688', fontFamily: 'monospace' })
+      .setScrollFactor(0).setDepth(201).setOrigin(0.5);
+    this.input.keyboard.once('keydown-R', () => this.scene.restart());
+  }
+
+  update(time, delta) {
+    if (this.caught || this.won) return;
+    const dt = delta / 1000;
+
+    // Sprint & stamina
+    const sprinting = this.keys.sprint.isDown && this.stamina > 0;
+    this.stamina = sprinting
+      ? Math.max(0, this.stamina - 28 * dt)
+      : Math.min(100, this.stamina + 20 * dt);
+
+    // Player movement
+    const spd = sprinting ? 195 : 115;
+    let vx = 0, vy = 0;
+    if (this.keys.left.isDown)       vx = -1;
+    else if (this.keys.right.isDown) vx =  1;
+    if (this.keys.up.isDown)         vy = -1;
+    else if (this.keys.down.isDown)  vy =  1;
+    if (vx && vy) { vx *= 0.707; vy *= 0.707; }
+    this.player.setVelocity(vx * spd, vy * spd);
+
+    // Police — direct chase with wall collision fallback
+    const dx = this.player.x - this.police.x;
+    const dy = this.player.y - this.police.y;
+    const dist = Math.hypot(dx, dy);
+    this.police.setVelocity(
+      dist > 5 ? (dx / dist) * 70 : 0,
+      dist > 5 ? (dy / dist) * 70 : 0
+    );
+
+    // Stamina bar
+    const pct = this.stamina / 100;
+    this.stFill.setSize(150 * pct, 10);
+    this.stFill.setFillStyle(pct > 0.5 ? 0x22cc55 : pct > 0.25 ? 0xffaa22 : 0xff3333);
+
+    // Items counter
+    this.itemTxt.setText(`ITEMS: ${this.collected} / 3`);
+
+    // Proximity alert
+    if (dist < 160) this.alertTimer = 2;
+    if (this.alertTimer > 0) {
+      this.alertTimer -= dt;
+      this.alertTxt.setText('!! POLICE NEARBY !!');
+      this.alertTxt.setAlpha(0.5 + 0.5 * Math.sin(time * 0.012));
+      if (this.alertTimer <= 0) {
+        this.alertTxt.setText('');
+        this.alertTxt.setAlpha(1);
+      }
+    }
+  }
+}
+
+new Phaser.Game({
+  type: Phaser.AUTO,
+  width: COLS * T,
+  height: ROWS * T,
+  backgroundColor: '#000000',
+  physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
+  scene: GameScene
+});
+</script>
+</body>
+</html>
