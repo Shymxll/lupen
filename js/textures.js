@@ -15,25 +15,6 @@ GameScene.prototype._makeTextures = function() {
   g.lineStyle(1, 0x363688, 0.8); g.strokeRect(1, 1, T-2, T-2);
   g.generateTexture('wall', T, T); g.destroy();
 
-  // Player — blue hooded figure
-  g = this.make.graphics({ add: false });
-  g.fillStyle(0x000022, 0.4); g.fillEllipse(12, 22, 16, 5);
-  g.fillStyle(0x1a5faa); g.fillCircle(12, 12, 11);
-  g.fillStyle(0x2880cc); g.fillCircle(12, 12, 8);
-  g.fillStyle(0x44a8ee); g.fillCircle(9, 8, 4);
-  g.generateTexture('player', 24, 24); g.destroy();
-
-  // Police — dark blue uniform with badge & cap stripe
-  g = this.make.graphics({ add: false });
-  g.fillStyle(0x000022, 0.4); g.fillEllipse(13, 24, 18, 5);
-  g.fillStyle(0x122860); g.fillCircle(13, 13, 12);
-  g.fillStyle(0x1b3d8a); g.fillCircle(13, 13, 9);
-  g.fillStyle(0xcc1111); g.fillRect(6, 3, 14, 4);
-  g.fillStyle(0xffcc00); g.fillRect(9, 10, 8, 6);
-  g.fillStyle(0x1133bb); g.fillRect(10, 11, 6, 4);
-  g.lineStyle(1, 0x2255cc); g.strokeCircle(13, 13, 12);
-  g.generateTexture('police', 26, 28); g.destroy();
-
   // Item — gold money bag
   g = this.make.graphics({ add: false });
   g.fillStyle(0xffee44, 0.10); g.fillCircle(12, 12, 11);

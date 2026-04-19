@@ -1,6 +1,11 @@
 class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
 
+  preload() {
+    this.load.image('player', 'assets/thief.png');
+    this.load.image('police', 'assets/policeman.png');
+  }
+
   create() {
     this.caught    = false;
     this.won       = false;
@@ -172,7 +177,7 @@ class GameScene extends Phaser.Scene {
     // Detect nearby item via manual distance check (avoids physics timing issues)
     this.nearbyItem = null;
     this.itemGroup.getChildren().forEach(item => {
-      if (item.active && Math.hypot(this.player.x - item.x, this.player.y - item.y) < 18) {
+      if (item.active && Math.hypot(this.player.x - item.x, this.player.y - item.y) < 35) {
         this.nearbyItem = item;
       }
     });

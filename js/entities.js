@@ -36,10 +36,6 @@ GameScene.prototype._makeEntities = function() {
     item.itemWeight = data.weight;
     item.setTint(data.color);
     this.itemSprites[data.id] = item;
-    this.tweens.add({
-      targets: item, scaleX: 1.18, scaleY: 1.18,
-      duration: 750, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
-    });
   });
 
   this._solveKnapsack(ITEM_DATA, 15);
@@ -54,6 +50,7 @@ GameScene.prototype._makeEntities = function() {
 
   // Player
   this.player = this.physics.add.sprite(T * 1.5, T * 1.5, 'player');
+  this.player.setDisplaySize(34, 36);
   this.player.setCollideWorldBounds(true);
   this.player.body.setSize(16, 16);
 
@@ -63,6 +60,7 @@ GameScene.prototype._makeEntities = function() {
     this.physics.add.sprite(T * 18.5, T * 1.5,  'police'), // interceptor
   ];
   this.policeList.forEach(cop => {
+    cop.setDisplaySize(34, 36);
     cop.setCollideWorldBounds(true);
     cop.body.setSize(18, 18);
     this.physics.add.collider(cop, this.walls);
