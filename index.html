@@ -38,11 +38,23 @@ class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
 
   create() {
-    this.caught = false;
-    this.won = false;
+    this.caught    = false;
+    this.won       = false;
     this.collected = 0;
-    this.stamina = 100;
+    this.stamina   = 100;
     this.alertTimer = 0;
+
+    // Lives system
+    this.lives       = 3;
+    this.invincible  = false;
+    this.lastItemPos = { x: T * 1.5, y: T * 1.5 };
+
+    // ULTI state
+    this.ultiUsed    = false;
+    this.ultraActive = false;
+
+    // Police communication
+    this.playerSpotted = false;
 
     this._makeTextures();
     this._makeMap();
@@ -50,8 +62,12 @@ class GameScene extends Phaser.Scene {
     this._makeHUD();
 
     this.keys = this.input.keyboard.addKeys({
-      up: 'W', down: 'S', left: 'A', right: 'D',
-      sprint: Phaser.Input.Keyboard.KeyCodes.SHIFT
+      up:     'W',
+      down:   'S',
+      left:   'A',
+      right:  'D',
+      sprint: Phaser.Input.Keyboard.KeyCodes.SHIFT,
+      ulti:   'Q',
     });
 
     this.cameras.main
@@ -62,13 +78,13 @@ class GameScene extends Phaser.Scene {
   _makeTextures() {
     let g;
 
-    // Floor tile — dark navy grid
+    // Floor tile
     g = this.make.graphics({ add: false });
     g.fillStyle(0x0b0b18); g.fillRect(0, 0, T, T);
     g.lineStyle(1, 0x111125, 1); g.strokeRect(0, 0, T, T);
     g.generateTexture('floor', T, T); g.destroy();
 
-    // Wall tile — layered blue-grey bricks
+    // Wall tile
     g = this.make.graphics({ add: false });
     g.fillStyle(0x18183a); g.fillRect(0, 0, T, T);
     g.fillStyle(0x20204a); g.fillRect(2, 2, T-4, T-4);
@@ -78,9 +94,7 @@ class GameScene extends Phaser.Scene {
 
     // Player — blue hooded figure
     g = this.make.graphics({ add: false });
-    // shadow
     g.fillStyle(0x000022, 0.4); g.fillEllipse(12, 22, 16, 5);
-    // body layers
     g.fillStyle(0x1a5faa); g.fillCircle(12, 12, 11);
     g.fillStyle(0x2880cc); g.fillCircle(12, 12, 8);
     g.fillStyle(0x44a8ee); g.fillCircle(9, 8, 4);
@@ -88,33 +102,33 @@ class GameScene extends Phaser.Scene {
 
     // Police — dark blue uniform with badge & cap stripe
     g = this.make.graphics({ add: false });
-    // shadow
     g.fillStyle(0x000022, 0.4); g.fillEllipse(13, 24, 18, 5);
-    // body
     g.fillStyle(0x122860); g.fillCircle(13, 13, 12);
     g.fillStyle(0x1b3d8a); g.fillCircle(13, 13, 9);
-    // red cap strip
     g.fillStyle(0xcc1111); g.fillRect(6, 3, 14, 4);
-    // badge
     g.fillStyle(0xffcc00); g.fillRect(9, 10, 8, 6);
     g.fillStyle(0x1133bb); g.fillRect(10, 11, 6, 4);
-    // outline
     g.lineStyle(1, 0x2255cc); g.strokeCircle(13, 13, 12);
     g.generateTexture('police', 26, 28); g.destroy();
 
     // Item — gold money bag
     g = this.make.graphics({ add: false });
-    // glow
     g.fillStyle(0xffee44, 0.10); g.fillCircle(12, 12, 11);
-    // knot on top
     g.fillStyle(0x996600); g.fillCircle(12, 5, 4);
-    // bag body
     g.fillStyle(0xb87700); g.fillEllipse(12, 14, 16, 14);
-    // bag face highlight
     g.fillStyle(0xffaa00); g.fillEllipse(12, 13, 11, 10);
-    // sheen
     g.fillStyle(0xffffff, 0.30); g.fillEllipse(9, 10, 5, 4);
     g.generateTexture('item', 24, 24); g.destroy();
+
+    // Exit door — glowing green portal
+    g = this.make.graphics({ add: false });
+    g.fillStyle(0x001a00); g.fillRect(0, 0, T, T);
+    g.fillStyle(0x004d1a); g.fillRect(3, 3, T-6, T-6);
+    g.fillStyle(0x00aa44); g.fillRect(6, 6, T-12, T-12);
+    g.fillStyle(0x00ff66); g.fillRect(9, 9, T-18, T-18);
+    g.lineStyle(2, 0x00ff44, 1); g.strokeRect(2, 2, T-4, T-4);
+    g.lineStyle(1, 0x44ffaa, 0.6); g.strokeRect(5, 5, T-10, T-10);
+    g.generateTexture('exit', T, T); g.destroy();
   }
 
   _makeMap() {
@@ -139,42 +153,59 @@ class GameScene extends Phaser.Scene {
       { id: 2, col: 3,  row: 12, weight: 3, value: 5 },
     ];
 
-    // Items — all on verified floor tiles [col, row]
-    this.itemGroup = this.physics.add.staticGroup();
+    // Items
+    this.itemGroup  = this.physics.add.staticGroup();
     this.itemSprites = {};
-    this.itemGlows  = {};
+    this.itemGlows   = {};
 
     ITEM_DATA.forEach(data => {
       const item = this.itemGroup.create(data.col * T + T / 2, data.row * T + T / 2, 'item');
       item.body.setSize(16, 16); item.refreshBody();
       item.itemId = data.id;
       this.itemSprites[data.id] = item;
-      // pulse scale tween (does not disturb physics body)
       this.tweens.add({
         targets: item, scaleX: 1.18, scaleY: 1.18,
         duration: 750, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
       });
     });
 
-    // Kick off knapsack optimisation (async, non-blocking)
     this._solveKnapsack(ITEM_DATA, 10);
 
-    // Player — top-left open area
+    // Exit door — col 5, row 1 (near player spawn, requires backtracking after items)
+    this.exitDoor = this.physics.add.staticSprite(T * 5.5, T * 1.5, 'exit');
+    this.exitDoor.body.setSize(T - 4, T - 4); this.exitDoor.refreshBody();
+    this.exitDoor.setAlpha(0.35);
+    // Exit label
+    this.exitLabel = this.add.text(T * 5.5, T * 1.5 - 22, 'EXIT', {
+      fontSize: '9px', color: '#004d1a', fontFamily: 'monospace', fontStyle: 'bold'
+    }).setOrigin(0.5).setDepth(10);
+
+    // Player
     this.player = this.physics.add.sprite(T * 1.5, T * 1.5, 'player');
     this.player.setCollideWorldBounds(true);
     this.player.body.setSize(16, 16);
 
-    // Police — bottom-right open area
-    this.police = this.physics.add.sprite(T * 18.5, T * 13.5, 'police');
-    this.police.setCollideWorldBounds(true);
-    this.police.body.setSize(18, 18);
+    // Two police officers
+    this.policeList = [
+      this.physics.add.sprite(T * 18.5, T * 13.5, 'police'), // chaser
+      this.physics.add.sprite(T * 18.5, T * 1.5,  'police'), // interceptor
+    ];
+    this.policeList.forEach(cop => {
+      cop.setCollideWorldBounds(true);
+      cop.body.setSize(18, 18);
+      this.physics.add.collider(cop, this.walls);
+      this.physics.add.overlap(this.player, cop, () => this._onCatch());
+    });
+
+    // ULTI lines graphics layer
+    this.ultiGraphics = this.add.graphics().setDepth(50);
 
     this.physics.add.collider(this.player, this.walls);
-    this.physics.add.collider(this.police, this.walls);
 
+    // Item pickup
     this.physics.add.overlap(this.player, this.itemGroup, (_, item) => {
+      if (this.caught || this.won) return;
       this.tweens.killTweensOf(item);
-      // Remove glow ring if this was a highlighted target
       if (this.itemGlows[item.itemId]) {
         this.tweens.killTweensOf(this.itemGlows[item.itemId]);
         this.itemGlows[item.itemId].destroy();
@@ -182,17 +213,85 @@ class GameScene extends Phaser.Scene {
       }
       item.destroy();
       this.collected++;
-      if (this.collected >= 3 && !this.won) {
-        this.won = true;
-        this._end('ESCAPED!', '#33ff88');
+      this.lastItemPos = { x: this.player.x, y: this.player.y };
+      this._updateItemHUD();
+
+      if (this.collected >= 3) {
+        // Activate exit door
+        this.tweens.killTweensOf(this.exitDoor);
+        this.exitDoor.setAlpha(1);
+        this.exitLabel.setColor('#00ff66');
+        this.exitLabel.setText('EXIT ←');
+        this.tweens.add({ targets: this.exitDoor, alpha: 0.55, duration: 450, yoyo: true, repeat: -1 });
+        this.itemTxt.setText('ALL ITEMS → EXIT!');
       }
     });
 
-    this.physics.add.overlap(this.player, this.police, () => {
-      if (!this.caught && !this.won) {
-        this.caught = true;
-        this._end('BUSTED!', '#ff3344');
+    // Exit door overlap (win)
+    this.physics.add.overlap(this.player, this.exitDoor, () => {
+      if (this.collected >= 3 && !this.won && !this.caught) {
+        this.won = true;
+        const score = this.collected * 100 + this.lives * 200;
+        this._end('YOU WIN!', '#33ff88', score);
       }
+    });
+  }
+
+  _onCatch() {
+    if (this.caught || this.won || this.invincible) return;
+    this.lives--;
+    this._updateHeartsHUD();
+
+    if (this.lives <= 0) {
+      this.caught = true;
+      this._end('GAME OVER', '#ff3344');
+      return;
+    }
+
+    // Respawn at last collected item position
+    this.player.setPosition(this.lastItemPos.x, this.lastItemPos.y);
+    this.player.setVelocity(0, 0);
+    // Reset ulti for this life
+    this.ultiUsed = false;
+    if (this.ultraActive) {
+      this.ultraActive = false;
+      this.ultiGraphics.clear();
+      this.policeList.forEach(cop => { cop.body.moves = true; });
+    }
+    this._updateUltiHUD();
+
+    // Brief invincibility + flash
+    this.invincible = true;
+    this.time.delayedCall(1500, () => { this.invincible = false; });
+    this.tweens.add({
+      targets: this.player, alpha: 0, duration: 150,
+      yoyo: true, repeat: 4,
+      onComplete: () => this.player.setAlpha(1)
+    });
+  }
+
+  _activateUlti() {
+    this.ultiUsed = true;
+    this.ultraActive = true;
+    this._updateUltiHUD();
+
+    // Freeze all police
+    this.policeList.forEach(cop => {
+      cop._savedVel = { x: cop.body.velocity.x, y: cop.body.velocity.y };
+      cop.setVelocity(0, 0);
+      cop.body.moves = false;
+    });
+
+    // Unfreeze after 2 seconds
+    this.time.delayedCall(2000, () => {
+      if (!this.caught && !this.won) {
+        this.policeList.forEach(cop => {
+          cop.body.moves = true;
+          cop.setVelocity(cop._savedVel.x, cop._savedVel.y);
+        });
+      }
+      this.ultraActive = false;
+      this.ultiGraphics.clear();
     });
   }
 
@@ -215,11 +314,7 @@ class GameScene extends Phaser.Scene {
     ids.forEach(id => {
       const sprite = this.itemSprites[id];
       if (!sprite || !sprite.active) return;
-
-      // Cyan tint to distinguish optimal targets
       sprite.setTint(0x44ffff);
-
-      // Expanding ring that fades out repeatedly
       const ring = this.add.circle(sprite.x, sprite.y, 14, 0x00eeff, 0.45).setDepth(5);
       this.tweens.add({
         targets: ring, alpha: 0, scaleX: 2.2, scaleY: 2.2,
@@ -227,7 +322,6 @@ class GameScene extends Phaser.Scene {
       });
       this.itemGlows[id] = ring;
     });
-
     this.targetsTxt.setText(`Targets: ${ids.length} item${ids.length !== 1 ? 's' : ''}`);
   }
 
@@ -242,7 +336,7 @@ class GameScene extends Phaser.Scene {
     this.stBg = this.add.rectangle(85, 18, 150, 10, 0x0e0e22)
       .setScrollFactor(0).setDepth(d);
 
-    // Stamina fill bar — origin left-center so resize shrinks right
+    // Stamina fill bar
     this.stFill = this.add.rectangle(10, 18, 150, 10, 0x22cc55)
       .setScrollFactor(0).setDepth(d + 1).setOrigin(0, 0.5);
 
@@ -250,35 +344,101 @@ class GameScene extends Phaser.Scene {
     this.itemTxt = this.add.text(10, 32, 'ITEMS: 0 / 3', { fontSize: '11px', color: '#ffcc00', fontFamily: 'monospace' })
       .setScrollFactor(0).setDepth(d);
 
-    // Knapsack targets hint (populated once API responds)
+    // Knapsack targets hint
     this.targetsTxt = this.add.text(10, 46, 'Targets: …', { fontSize: '11px', color: '#44ffff', fontFamily: 'monospace' })
       .setScrollFactor(0).setDepth(d);
 
-    // Controls hint (bottom-left, barely visible)
+    // Hearts (lives) — top-right
+    this.heartsTxt = this.add.text(COLS * T - 10, 10, '♥♥♥', {
+      fontSize: '18px', color: '#ff3355', fontFamily: 'monospace'
+    }).setScrollFactor(0).setDepth(d).setOrigin(1, 0);
+
+    // ULTI indicator — bottom-left above controls
+    this.ultiTxt = this.add.text(10, ROWS * T - 32, 'Q: ULTI [READY]', {
+      fontSize: '10px', color: '#ff4444', fontFamily: 'monospace'
+    }).setScrollFactor(0).setDepth(d);
+
+    // Controls hint
     this.add.text(10, ROWS * T - 18, 'WASD: move   SHIFT: sprint', { fontSize: '9px', color: '#22224a', fontFamily: 'monospace' })
       .setScrollFactor(0).setDepth(d);
 
-    // Police proximity alert — centered top
-    this.alertTxt = this.add.text(COLS * T / 2, 10, '', { fontSize: '13px', color: '#ff3344', fontFamily: 'monospace', fontStyle: 'bold' })
-      .setScrollFactor(0).setDepth(d).setOrigin(0.5, 0);
+    // Police proximity alert
+    this.alertTxt = this.add.text(COLS * T / 2, 10, '', {
+      fontSize: '13px', color: '#ff3344', fontFamily: 'monospace', fontStyle: 'bold'
+    }).setScrollFactor(0).setDepth(d).setOrigin(0.5, 0);
   }
 
-  _end(msg, color) {
-    const cx = COLS * T / 2, cy = ROWS * T / 2;
+  _updateHeartsHUD() {
+    this.heartsTxt.setText('♥'.repeat(Math.max(0, this.lives)) + '♡'.repeat(Math.max(0, 3 - this.lives)));
+  }
+
+  _updateUltiHUD() {
+    if (this.ultiUsed) {
+      this.ultiTxt.setText('Q: ULTI [USED]');
+      this.ultiTxt.setColor('#444444');
+    } else {
+      this.ultiTxt.setText('Q: ULTI [READY]');
+      this.ultiTxt.setColor('#ff4444');
+    }
+  }
+
+  _updateItemHUD() {
+    if (this.collected < 3) {
+      this.itemTxt.setText(`ITEMS: ${this.collected} / 3`);
+    }
+  }
+
+  _end(msg, color, score = 0) {
     this.player.setVelocity(0, 0);
-    this.police.setVelocity(0, 0);
-    this.add.rectangle(cx, cy, 360, 150, 0x000000, 0.92)
+    this.policeList.forEach(cop => {
+      cop.setVelocity(0, 0);
+      cop.body.moves = false;
+    });
+    if (this.ultraActive) {
+      this.ultraActive = false;
+      this.ultiGraphics.clear();
+    }
+
+    const cx = COLS * T / 2, cy = ROWS * T / 2;
+    this.add.rectangle(cx, cy, 420, 190, 0x000000, 0.93)
       .setScrollFactor(0).setDepth(200);
-    this.add.text(cx, cy - 30, msg, { fontSize: '48px', color, fontFamily: 'monospace', fontStyle: 'bold' })
-      .setScrollFactor(0).setDepth(201).setOrigin(0.5);
-    this.add.text(cx, cy + 26, 'Press  R  to restart', { fontSize: '14px', color: '#666688', fontFamily: 'monospace' })
-      .setScrollFactor(0).setDepth(201).setOrigin(0.5);
+    this.add.text(cx, cy - 55, msg, {
+      fontSize: '48px', color, fontFamily: 'monospace', fontStyle: 'bold'
+    }).setScrollFactor(0).setDepth(201).setOrigin(0.5);
+
+    if (score > 0) {
+      this.add.text(cx, cy + 5, `SCORE: ${score}`, {
+        fontSize: '22px', color: '#ffcc00', fontFamily: 'monospace'
+      }).setScrollFactor(0).setDepth(201).setOrigin(0.5);
+    }
+
+    this.add.text(cx, cy + 50, 'Press  R  to restart', {
+      fontSize: '14px', color: '#666688', fontFamily: 'monospace'
+    }).setScrollFactor(0).setDepth(201).setOrigin(0.5);
+
     this.input.keyboard.once('keydown-R', () => this.scene.restart());
   }
 
   update(time, delta) {
     if (this.caught || this.won) return;
     const dt = delta / 1000;
+
+    // ULTI trigger
+    if (Phaser.Input.Keyboard.JustDown(this.keys.ulti) && !this.ultiUsed && !this.ultraActive) {
+      this._activateUlti();
+    }
+
+    // Draw ULTI lines while active
+    if (this.ultraActive) {
+      this.ultiGraphics.clear();
+      this.ultiGraphics.lineStyle(2, 0xff2222, 0.85);
+      this.policeList.forEach(cop => {
+        this.ultiGraphics.beginPath();
+        this.ultiGraphics.moveTo(cop.x, cop.y);
+        this.ultiGraphics.lineTo(this.player.x, this.player.y);
+        this.ultiGraphics.strokePath();
+      });
+    }
 
     // Sprint & stamina
     const sprinting = this.keys.sprint.isDown && this.stamina > 0;
@@ -296,25 +456,48 @@ class GameScene extends Phaser.Scene {
     if (vx && vy) { vx *= 0.707; vy *= 0.707; }
     this.player.setVelocity(vx * spd, vy * spd);
 
-    // Police — direct chase with wall collision fallback
-    const dx = this.player.x - this.police.x;
-    const dy = this.player.y - this.police.y;
-    const dist = Math.hypot(dx, dy);
-    this.police.setVelocity(
-      dist > 5 ? (dx / dist) * 70 : 0,
-      dist > 5 ? (dy / dist) * 70 : 0
-    );
+    // Police AI (only when not frozen by ULTI)
+    if (!this.ultraActive) {
+      const px = this.player.x, py = this.player.y;
+
+      // Communication: spotted if any cop is within 200px
+      this.playerSpotted = this.policeList.some(c => Math.hypot(px - c.x, py - c.y) < 200);
+
+      // Police 0: direct chaser
+      const c0 = this.policeList[0];
+      const dx0 = px - c0.x, dy0 = py - c0.y, d0 = Math.hypot(dx0, dy0);
+      c0.setVelocity(
+        d0 > 5 ? (dx0 / d0) * 80 : 0,
+        d0 > 5 ? (dy0 / d0) * 80 : 0
+      );
+
+      // Police 1: interceptor — predicts player position 1s ahead when alerted
+      const c1 = this.policeList[1];
+      let tx = px, ty = py;
+      if (this.playerSpotted) {
+        tx = px + this.player.body.velocity.x * 1.0;
+        ty = py + this.player.body.velocity.y * 1.0;
+      }
+      const dx1 = tx - c1.x, dy1 = ty - c1.y, d1 = Math.hypot(dx1, dy1);
+      c1.setVelocity(
+        d1 > 5 ? (dx1 / d1) * 75 : 0,
+        d1 > 5 ? (dy1 / d1) * 75 : 0
+      );
+    }
 
     // Stamina bar
     const pct = this.stamina / 100;
     this.stFill.setSize(150 * pct, 10);
     this.stFill.setFillStyle(pct > 0.5 ? 0x22cc55 : pct > 0.25 ? 0xffaa22 : 0xff3333);
 
-    // Items counter
-    this.itemTxt.setText(`ITEMS: ${this.collected} / 3`);
+    // Item counter (if not showing "ALL ITEMS → EXIT!")
+    if (this.collected < 3) {
+      this.itemTxt.setText(`ITEMS: ${this.collected} / 3`);
+    }
 
-    // Proximity alert
-    if (dist < 160) this.alertTimer = 2;
+    // Proximity alert (nearest cop distance)
+    const minDist = Math.min(...this.policeList.map(c => Math.hypot(this.player.x - c.x, this.player.y - c.y)));
+    if (minDist < 160) this.alertTimer = 2;
     if (this.alertTimer > 0) {
       this.alertTimer -= dt;
       this.alertTxt.setText('!! POLICE NEARBY !!');
