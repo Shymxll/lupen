@@ -158,24 +158,33 @@ class GameScene extends Phaser.Scene {
 
       this.playerSpotted = this.policeList.some(c => Math.hypot(px - c.x, py - c.y) < 200);
 
-      const c0 = this.policeList[0];
-      const dx0 = px - c0.x, dy0 = py - c0.y, d0 = Math.hypot(dx0, dy0);
-      c0.setVelocity(
-        d0 > 5 ? (dx0 / d0) * 80 : 0,
-        d0 > 5 ? (dy0 / d0) * 80 : 0
-      );
-
-      const c1 = this.policeList[1];
-      let tx = px, ty = py;
-      if (this.playerSpotted) {
-        tx = px + this.player.body.velocity.x * 1.0;
-        ty = py + this.player.body.velocity.y * 1.0;
+      this._pathTimer = (this._pathTimer || 0) + delta;
+      if (this._pathTimer > 500) {
+        this._pathTimer = 0;
+        this.policeList.forEach((cop, i) => {
+          let tx = px, ty = py;
+          if (i === 1 && this.playerSpotted) {
+            tx = px + this.player.body.velocity.x * 0.8;
+            ty = py + this.player.body.velocity.y * 0.8;
+          }
+          cop._path = astar(MAP, cop.x, cop.y, tx, ty);
+          cop._pathIdx = 1;
+        });
       }
-      const dx1 = tx - c1.x, dy1 = ty - c1.y, d1 = Math.hypot(dx1, dy1);
-      c1.setVelocity(
-        d1 > 5 ? (dx1 / d1) * 75 : 0,
-        d1 > 5 ? (dy1 / d1) * 75 : 0
-      );
+
+      const speeds = [80, 75];
+      this.policeList.forEach((cop, i) => {
+        const path = cop._path;
+        if (!path || cop._pathIdx >= path.length) {
+          cop.setVelocity(0, 0);
+          return;
+        }
+        const target = path[cop._pathIdx];
+        const dx = target.x - cop.x, dy = target.y - cop.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 6) { cop._pathIdx++; return; }
+        cop.setVelocity((dx / dist) * speeds[i], (dy / dist) * speeds[i]);
+      });
     }
 
     const pct = this.stamina / 100;

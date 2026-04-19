@@ -1,6 +1,6 @@
 GameScene.prototype._solveKnapsack = async function(items, capacity) {
   try {
-    const res = await fetch('http://localhost:5000/solve-knapsack', {
+    const res = await fetch('http://localhost:8000/solve-knapsack', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items, capacity }),

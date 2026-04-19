@@ -3,7 +3,7 @@ from flask_cors import CORS
 import gamspy as gp
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["http://127.0.0.1:5500", "http://localhost:5500"])
 
 
 @app.route('/solve-knapsack', methods=['POST'])
@@ -44,11 +44,11 @@ def solve_knapsack():
 
     key_to_id = {f'item_{item["id"]}': item['id'] for item in items}
 
-    selected_keys = (
-        x.records[x.records['level'] > 0.5]['i'].tolist()
-        if x.records is not None
-        else []
-    )
+    if x.records is not None:
+        col = x.records.columns[0]
+        selected_keys = x.records[x.records['level'] > 0.5][col].tolist()
+    else:
+        selected_keys = []
     selected_ids = [key_to_id[k] for k in selected_keys if k in key_to_id]
 
     total_value = float(z.records['level'].values[0]) if z.records is not None else 0.0
@@ -57,4 +57,4 @@ def solve_knapsack():
 
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(port=8000, debug=True)
