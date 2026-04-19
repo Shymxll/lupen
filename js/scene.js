@@ -17,6 +17,8 @@ class GameScene extends Phaser.Scene {
     this.ultraActive = false;
 
     this.playerSpotted = false;
+    this.timeLeft  = 60;
+    this.doorClosed = false;
 
     this._makeTextures();
     this._makeMap();
@@ -106,6 +108,13 @@ class GameScene extends Phaser.Scene {
       this.cameras.main.zoomTo(2, 500);
       this.ultiGraphics.clear();
     });
+  }
+
+  _closeDoor() {
+    this.doorClosed = true;
+    this.caught = true;
+    this.timerTxt.setColor('#ff3344');
+    this._end('TIME\'S UP!', '#ff3344');
   }
 
   _end(msg, color, score = 0) {
@@ -219,6 +228,15 @@ class GameScene extends Phaser.Scene {
         if (dist < 6) { cop._pathIdx++; return; }
         cop.setVelocity((dx / dist) * speeds[i], (dy / dist) * speeds[i]);
       });
+    }
+
+    if (!this.doorClosed) {
+      this.timeLeft -= dt;
+      if (this.timeLeft <= 0) {
+        this.timeLeft = 0;
+        this._closeDoor();
+      }
+      this._updateTimerHUD();
     }
 
     const pct = this.stamina / 100;

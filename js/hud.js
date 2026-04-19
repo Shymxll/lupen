@@ -24,6 +24,10 @@ GameScene.prototype._makeHUD = function() {
   this.alertTxt = push(this.add.text(COLS * T / 2, 10, '', {
     fontSize: '13px', color: '#ff3344', fontFamily: 'monospace', fontStyle: 'bold'
   }).setDepth(d).setOrigin(0.5, 0));
+
+  this.timerTxt = push(this.add.text(COLS * T - 10, 10, 'TIME: 60', {
+    fontSize: '13px', color: '#ffcc00', fontFamily: 'monospace', fontStyle: 'bold'
+  }).setDepth(d).setOrigin(1, 0));
 };
 
 GameScene.prototype._updateHeartsHUD = function() {
@@ -39,6 +43,13 @@ GameScene.prototype._updateUltiHUD = function() {
     this.ultiTxt.setText('Q: ULTI [READY]');
     this.ultiTxt.setColor('#ff4444');
   }
+};
+
+GameScene.prototype._updateTimerHUD = function() {
+  const secs = Math.ceil(this.timeLeft);
+  this.timerTxt.setText(`TIME: ${secs}`);
+  if (secs <= 10) this.timerTxt.setColor('#ff3344');
+  else if (secs <= 20) this.timerTxt.setColor('#ffaa22');
 };
 
 GameScene.prototype._updateItemHUD = function() {

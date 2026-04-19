@@ -95,7 +95,7 @@ GameScene.prototype._makeEntities = function() {
 
   // Exit door overlap (win)
   this.physics.add.overlap(this.player, this.exitDoor, () => {
-    if (this.collected >= 3 && !this.won && !this.caught) {
+    if (this.collected >= 3 && !this.won && !this.caught && !this.doorClosed) {
       this.won = true;
       const score = this.collected * 100 + this.lives * 200;
       this._end('YOU WIN!', '#33ff88', score);
