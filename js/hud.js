@@ -38,7 +38,8 @@ GameScene.prototype._updateHeartsHUD = function() {
 
 GameScene.prototype._updateUltiHUD = function() {
   if (this.ultiUsed) {
-    this.ultiTxt.setText('Q: ULTI [USED]');
+    const secs = Math.ceil(this.ultiCooldown || 0);
+    this.ultiTxt.setText(`Q: ULTI [${secs}s]`);
     this.ultiTxt.setColor('#444444');
   } else {
     this.ultiTxt.setText('Q: ULTI [READY]');

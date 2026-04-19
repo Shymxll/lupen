@@ -13,6 +13,7 @@ class GameScene extends Phaser.Scene {
     this.lastItemPos = { x: T * 1.5, y: T * 1.5 };
 
     this.ultiUsed    = false;
+    this.ultiCooldown = 0;
     this.ultraActive = false;
 
     this.playerSpotted = false;
@@ -49,6 +50,7 @@ class GameScene extends Phaser.Scene {
 
     this.player.setPosition(this.lastItemPos.x, this.lastItemPos.y);
     this.player.setVelocity(0, 0);
+    this.ultiCooldown = 0;
     this.ultiUsed = false;
     if (this.ultraActive) {
       this.ultraActive = false;
@@ -68,6 +70,7 @@ class GameScene extends Phaser.Scene {
 
   _activateUlti() {
     this.ultiUsed = true;
+    this.ultiCooldown = 10;
     this.ultraActive = true;
     this._updateUltiHUD();
 
@@ -123,6 +126,17 @@ class GameScene extends Phaser.Scene {
   update(time, delta) {
     if (this.caught || this.won) return;
     const dt = delta / 1000;
+
+    if (this.ultiUsed && this.ultiCooldown > 0) {
+      this.ultiCooldown -= dt;
+      if (this.ultiCooldown <= 0) {
+        this.ultiCooldown = 0;
+        this.ultiUsed = false;
+        this._updateUltiHUD();
+      } else {
+        this._updateUltiHUD();
+      }
+    }
 
     if (Phaser.Input.Keyboard.JustDown(this.keys.ulti) && !this.ultiUsed && !this.ultraActive) {
       this._activateUlti();
