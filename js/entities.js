@@ -1,19 +1,19 @@
 const ITEM_DATA = [
   // Topaz ×2
-  { id: 0, col: 11, row: 2,  weight: 1, value: 3,  color: 0xffdd00, name: 'Topaz'  },
-  { id: 5, col: 9,  row: 3,  weight: 1, value: 3,  color: 0xffdd00, name: 'Topaz'  },
+  { id: 0, col: 11, row: 2,  weight: 1, value: 3,  color: 0xffdd00, name: 'Topaz',  texture: 'topaz'    },
+  { id: 5, col: 9,  row: 3,  weight: 1, value: 3,  color: 0xffdd00, name: 'Topaz',  texture: 'topaz'    },
   // Zümrüt ×2
-  { id: 1, col: 17, row: 7,  weight: 2, value: 6,  color: 0x00ff66, name: 'Zümrüt' },
-  { id: 6, col: 5,  row: 10, weight: 2, value: 6,  color: 0x00ff66, name: 'Zümrüt' },
+  { id: 1, col: 17, row: 7,  weight: 2, value: 6,  color: 0x00ff66, name: 'Zümrüt', texture: 'emerald'  },
+  { id: 6, col: 5,  row: 10, weight: 2, value: 6,  color: 0x00ff66, name: 'Zümrüt', texture: 'emerald'  },
   // Yakut ×2
-  { id: 2, col: 3,  row: 12, weight: 4, value: 9,  color: 0xff3333, name: 'Yakut'  },
-  { id: 7, col: 14, row: 6,  weight: 4, value: 9,  color: 0xff3333, name: 'Yakut'  },
+  { id: 2, col: 3,  row: 12, weight: 4, value: 9,  color: 0xff3333, name: 'Yakut',  texture: 'yakut'    },
+  { id: 7, col: 14, row: 6,  weight: 4, value: 9,  color: 0xff3333, name: 'Yakut',  texture: 'yakut'    },
   // Safir ×2
-  { id: 3, col: 7,  row: 8,  weight: 6, value: 13, color: 0x3399ff, name: 'Safir'  },
-  { id: 8, col: 8,  row: 11, weight: 6, value: 13, color: 0x3399ff, name: 'Safir'  },
+  { id: 3, col: 7,  row: 8,  weight: 6, value: 13, color: 0x3399ff, name: 'Safir',  texture: 'sapphire' },
+  { id: 8, col: 8,  row: 11, weight: 6, value: 13, color: 0x3399ff, name: 'Safir',  texture: 'sapphire' },
   // Elmas ×2
-  { id: 4, col: 17, row: 12, weight: 9, value: 20, color: 0xffffff, name: 'Elmas'  },
-  { id: 9, col: 13, row: 13, weight: 9, value: 20, color: 0xffffff, name: 'Elmas'  },
+  { id: 4, col: 17, row: 12, weight: 9, value: 20, color: 0xffffff, name: 'Elmas',  texture: 'diamond'  },
+  { id: 9, col: 13, row: 13, weight: 9, value: 20, color: 0xffffff, name: 'Elmas',  texture: 'diamond'  },
 ];
 
 GameScene.prototype._makeMap = function() {
@@ -40,11 +40,11 @@ GameScene.prototype._makeEntities = function() {
   this.itemGlows   = {};
 
   ITEM_DATA.forEach(data => {
-    const item = this.itemGroup.create(data.col * T + T / 2, data.row * T + T / 2, 'item');
+    const item = this.itemGroup.create(data.col * T + T / 2, data.row * T + T / 2, data.texture);
+    item.setDisplaySize(22, 22);
     item.body.setSize(16, 16); item.refreshBody();
     item.itemId = data.id;
     item.itemWeight = data.weight;
-    item.setTint(data.color);
     this.itemSprites[data.id] = item;
   });
 

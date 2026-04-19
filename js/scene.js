@@ -2,8 +2,13 @@ class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
 
   preload() {
-    this.load.image('player', 'assets/thief.png');
-    this.load.image('police', 'assets/policeman.png');
+    this.load.image('player',   'assets/thief.png');
+    this.load.image('police',   'assets/policeman.png');
+    this.load.image('topaz',    'assets/topaz.png');
+    this.load.image('emerald',  'assets/emerald.png');
+    this.load.image('yakut',    'assets/yakut.png');
+    this.load.image('sapphire', 'assets/sapphere.png');
+    this.load.image('diamond',  'assets/diamond.png');
   }
 
   create() {
