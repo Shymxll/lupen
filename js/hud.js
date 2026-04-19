@@ -1,35 +1,29 @@
 GameScene.prototype._makeHUD = function() {
+  this._hudObjects = [];
+  const push = obj => { this._hudObjects.push(obj); return obj; };
   const d = 60;
 
-  this.add.text(10, 10, 'STAMINA', { fontSize: '9px', color: '#44446a', fontFamily: 'monospace' })
-    .setScrollFactor(0).setDepth(d);
+  push(this.add.text(10, 10, 'STAMINA', { fontSize: '9px', color: '#44446a', fontFamily: 'monospace' }).setDepth(d));
 
-  this.stBg = this.add.rectangle(85, 18, 150, 10, 0x0e0e22)
-    .setScrollFactor(0).setDepth(d);
+  this.stBg   = push(this.add.rectangle(85, 18, 150, 10, 0x0e0e22).setDepth(d));
+  this.stFill = push(this.add.rectangle(10, 18, 150, 10, 0x22cc55).setDepth(d + 1).setOrigin(0, 0.5));
 
-  this.stFill = this.add.rectangle(10, 18, 150, 10, 0x22cc55)
-    .setScrollFactor(0).setDepth(d + 1).setOrigin(0, 0.5);
+  this.itemTxt    = push(this.add.text(10, 30, 'ITEMS: 0 / 3', { fontSize: '11px', color: '#ffcc00', fontFamily: 'monospace' }).setDepth(d));
+  this.targetsTxt = push(this.add.text(10, 44, 'Targets: …',   { fontSize: '11px', color: '#44ffff', fontFamily: 'monospace' }).setDepth(d));
 
-  this.itemTxt = this.add.text(10, 32, 'ITEMS: 0 / 3', { fontSize: '11px', color: '#ffcc00', fontFamily: 'monospace' })
-    .setScrollFactor(0).setDepth(d);
-
-  this.targetsTxt = this.add.text(10, 46, 'Targets: …', { fontSize: '11px', color: '#44ffff', fontFamily: 'monospace' })
-    .setScrollFactor(0).setDepth(d);
-
-  this.heartsTxt = this.add.text(COLS * T - 10, 10, '♥♥♥', {
+  this.heartsTxt  = push(this.add.text(10, 60, '♥♥♥', {
     fontSize: '18px', color: '#ff3355', fontFamily: 'monospace'
-  }).setScrollFactor(0).setDepth(d).setOrigin(1, 0);
+  }).setDepth(d));
 
-  this.ultiTxt = this.add.text(10, ROWS * T - 32, 'Q: ULTI [READY]', {
+  this.ultiTxt = push(this.add.text(10, ROWS * T - 32, 'Q: ULTI [READY]', {
     fontSize: '10px', color: '#ff4444', fontFamily: 'monospace'
-  }).setScrollFactor(0).setDepth(d);
+  }).setDepth(d));
 
-  this.add.text(10, ROWS * T - 18, 'WASD: move   SHIFT: sprint', { fontSize: '9px', color: '#22224a', fontFamily: 'monospace' })
-    .setScrollFactor(0).setDepth(d);
+  push(this.add.text(10, ROWS * T - 18, 'WASD: move   SHIFT: sprint', { fontSize: '9px', color: '#22224a', fontFamily: 'monospace' }).setDepth(d));
 
-  this.alertTxt = this.add.text(COLS * T / 2, 10, '', {
+  this.alertTxt = push(this.add.text(COLS * T / 2, 10, '', {
     fontSize: '13px', color: '#ff3344', fontFamily: 'monospace', fontStyle: 'bold'
-  }).setScrollFactor(0).setDepth(d).setOrigin(0.5, 0);
+  }).setDepth(d).setOrigin(0.5, 0));
 };
 
 GameScene.prototype._updateHeartsHUD = function() {

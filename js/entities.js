@@ -1,5 +1,6 @@
 GameScene.prototype._makeMap = function() {
   this.walls = this.physics.add.staticGroup();
+  this.floorTiles = [];
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const x = c * T + T / 2, y = r * T + T / 2;
@@ -7,7 +8,7 @@ GameScene.prototype._makeMap = function() {
         const w = this.walls.create(x, y, 'wall');
         w.body.setSize(T, T); w.refreshBody();
       } else {
-        this.add.image(x, y, 'floor');
+        this.floorTiles.push(this.add.image(x, y, 'floor'));
       }
     }
   }

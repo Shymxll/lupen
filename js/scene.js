@@ -34,7 +34,21 @@ class GameScene extends Phaser.Scene {
 
     this.cameras.main
       .setBounds(0, 0, COLS * T, ROWS * T)
-      .startFollow(this.player, true, 0.1, 0.1);
+      .startFollow(this.player, true, 0.1, 0.1)
+      .setZoom(2);
+    this.cameras.main.ignore(this._hudObjects);
+
+    this.uiCam = this.cameras.add(0, 0, COLS * T, ROWS * T).setScroll(0, 0).setName('ui');
+    this.uiCam.ignore([
+      ...this.floorTiles,
+      this.walls,
+      this.itemGroup,
+      this.exitDoor,
+      this.exitLabel,
+      this.player,
+      ...this.policeList,
+      this.ultiGraphics,
+    ]);
   }
 
   _onCatch() {
@@ -69,6 +83,7 @@ class GameScene extends Phaser.Scene {
   }
 
   _activateUlti() {
+    this.cameras.main.zoomTo(1, 400);
     this.ultiUsed = true;
     this.ultiCooldown = 10;
     this.ultraActive = true;
@@ -88,6 +103,7 @@ class GameScene extends Phaser.Scene {
         });
       }
       this.ultraActive = false;
+      this.cameras.main.zoomTo(2, 500);
       this.ultiGraphics.clear();
     });
   }
