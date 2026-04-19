@@ -25,8 +25,11 @@ class GameScene extends Phaser.Scene {
     this.ultraActive = false;
 
     this.playerSpotted = false;
-    this.timeLeft  = 60;
+    this.timeLeft  = 90;
     this.doorClosed = false;
+
+    this.optimalIds   = [];
+    this.optimalValue = 0;
 
     this._makeTextures();
     this._makeMap();
@@ -136,7 +139,7 @@ class GameScene extends Phaser.Scene {
     this._end('TIME\'S UP!', '#ff3344');
   }
 
-  _end(msg, color, score = 0) {
+  _end(msg, color) {
     this.player.setVelocity(0, 0);
     this.policeList.forEach(cop => {
       cop.setVelocity(0, 0);
@@ -148,23 +151,41 @@ class GameScene extends Phaser.Scene {
     }
 
     const cx = this.scale.width / 2, cy = this.scale.height / 2;
-    this.add.rectangle(cx, cy, 420, 190, 0x000000, 0.93)
+    this.add.rectangle(cx, cy, 280, 64, 0x000000, 0.88)
       .setScrollFactor(0).setDepth(200);
-    this.add.text(cx, cy - 55, msg, {
-      fontSize: '48px', color, fontFamily: 'monospace', fontStyle: 'bold'
+    this.add.text(cx, cy, msg, {
+      fontSize: '36px', color, fontFamily: 'monospace', fontStyle: 'bold'
     }).setScrollFactor(0).setDepth(201).setOrigin(0.5);
 
-    if (score > 0) {
-      this.add.text(cx, cy + 5, `SCORE: ${score}`, {
-        fontSize: '22px', color: '#ffcc00', fontFamily: 'monospace'
-      }).setScrollFactor(0).setDepth(201).setOrigin(0.5);
-    }
+    this.time.delayedCall(700, () => {
+      this._showEndOverlay(msg, this.won);
+    });
+  }
 
-    this.add.text(cx, cy + 50, 'Press  R  to restart', {
-      fontSize: '14px', color: '#666688', fontFamily: 'monospace'
-    }).setScrollFactor(0).setDepth(201).setOrigin(0.5);
+  _showEndOverlay(msg, won) {
+    const playerValue  = this.inventory.reduce((s, it) => s + it.value, 0);
+    const optimalValue = this.optimalValue || 1;
+    const jewel_ratio  = Math.min(1, playerValue / optimalValue);
+    const time_ratio   = won ? Math.max(0, this.timeLeft / 90) : 0;
+    const finalScore   = Math.round(jewel_ratio * 600 + time_ratio * 400);
+    const optimalItems = ITEM_DATA.filter(it => (this.optimalIds || []).includes(it.id));
 
-    this.input.keyboard.once('keydown-R', () => this.scene.restart());
+    showEndOverlay({
+      msg,
+      won,
+      finalScore,
+      jewel_ratio,
+      time_ratio,
+      playerItems:  this.inventory,
+      optimalItems,
+      playerValue,
+      optimalValue,
+      timeLeft: Math.ceil(this.timeLeft),
+      onRestart: () => {
+        hideEndOverlay();
+        this.scene.restart();
+      },
+    });
   }
 
   update(time, delta) {
@@ -314,7 +335,10 @@ GameScene.prototype._showPregameOverlay = function() {
 
   const list = document.getElementById('pg-jewel-list');
   list.innerHTML = '';
+  const seenNames = new Set();
   ITEM_DATA.forEach(item => {
+    if (seenNames.has(item.name)) return;
+    seenNames.add(item.name);
     const hex = '#' + item.color.toString(16).padStart(6, '0');
     const card = document.createElement('div');
     card.className = 'jewel-card';

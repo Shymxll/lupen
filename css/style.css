@@ -291,3 +291,259 @@ body {
 #pregame-start-btn:hover {
   background: #1a6640;
 }
+
+/* ── End-game overlay ── */
+#endgame-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+}
+
+#endgame-modal {
+  background: #07071a;
+  border: 1px solid #1a1a4a;
+  border-radius: 8px;
+  padding: 28px 32px;
+  max-width: 560px;
+  width: 92%;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: #ccccdd;
+}
+
+.end-title {
+  font-size: 32px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  text-align: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #1a1a3a;
+}
+
+.end-win  { color: #33ff88; }
+.end-lose { color: #ff3344; }
+
+/* Two-column jewel comparison */
+.end-columns {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.end-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.end-col-divider {
+  width: 1px;
+  background: #1a1a3a;
+  align-self: stretch;
+}
+
+.end-col-title {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #44446a;
+}
+
+.optimal-title {
+  color: #44ffff;
+}
+
+.end-jewel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 28px;
+}
+
+.end-jewel-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #0d0d2a;
+  font-size: 11px;
+}
+
+.end-jewel-tag em {
+  color: #55557a;
+  font-style: normal;
+}
+
+.end-jewel-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.end-empty {
+  font-size: 11px;
+  color: #44446a;
+  font-style: italic;
+}
+
+.end-col-total {
+  font-size: 11px;
+  color: #888899;
+  padding-top: 4px;
+  border-top: 1px dashed #1a1a3a;
+}
+
+/* Score stats */
+.end-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #0a0a1e;
+  border: 1px solid #1a1a3a;
+  border-radius: 5px;
+  padding: 12px 16px;
+}
+
+.end-stat {
+  font-size: 12px;
+  color: #8888aa;
+}
+
+.end-score {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffcc00;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* Name input & buttons */
+.end-name-row {
+  display: flex;
+  gap: 8px;
+}
+
+#end-name-input {
+  flex: 1;
+  background: #0d0d2a;
+  border: 1px solid #1a1a4a;
+  border-radius: 4px;
+  color: #ccccdd;
+  font-family: monospace;
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+}
+
+#end-name-input:focus {
+  border-color: #33ff88;
+}
+
+.end-btn {
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 1px solid #33ff88;
+  background: #0f4a2a;
+  color: #33ff88;
+  letter-spacing: 1px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.end-btn:hover { background: #1a6640; }
+.end-btn:disabled { opacity: 0.5; cursor: default; }
+
+.end-btn-sec {
+  background: #0a0a1e;
+  border-color: #1a1a4a;
+  color: #8888aa;
+}
+
+.end-btn-sec:hover { background: #111133; color: #ccccdd; border-color: #3333aa; }
+
+.end-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ── Scoreboard overlay ── */
+#scoreboard-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 1001;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+}
+
+#scoreboard-modal {
+  background: #07071a;
+  border: 1px solid #1a1a4a;
+  border-radius: 8px;
+  padding: 28px 32px;
+  max-width: 520px;
+  width: 92%;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sb-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 4px;
+  text-align: center;
+  border-bottom: 1px solid #1a1a3a;
+  padding-bottom: 12px;
+}
+
+#scoreboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+#scoreboard-table th {
+  color: #44446a;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid #1a1a3a;
+}
+
+#scoreboard-table td {
+  padding: 7px 8px;
+  color: #ccccdd;
+  border-bottom: 1px solid #0d0d22;
+}
+
+#scoreboard-table tr:nth-child(even) td {
+  background: #0a0a1e;
+}
+
+.sb-name  { font-weight: bold; color: #ffffff; }
+.sb-score { color: #ffcc00; font-weight: bold; }
+.sb-win   { color: #33ff88; font-weight: bold; }
+.sb-lose  { color: #ff3344; font-weight: bold; }

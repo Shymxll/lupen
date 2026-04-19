@@ -1,9 +1,19 @@
 const ITEM_DATA = [
+  // Topaz ×2
   { id: 0, col: 11, row: 2,  weight: 1, value: 3,  color: 0xffdd00, name: 'Topaz'  },
+  { id: 5, col: 9,  row: 3,  weight: 1, value: 3,  color: 0xffdd00, name: 'Topaz'  },
+  // Zümrüt ×2
   { id: 1, col: 17, row: 7,  weight: 2, value: 6,  color: 0x00ff66, name: 'Zümrüt' },
+  { id: 6, col: 5,  row: 10, weight: 2, value: 6,  color: 0x00ff66, name: 'Zümrüt' },
+  // Yakut ×2
   { id: 2, col: 3,  row: 12, weight: 4, value: 9,  color: 0xff3333, name: 'Yakut'  },
+  { id: 7, col: 14, row: 6,  weight: 4, value: 9,  color: 0xff3333, name: 'Yakut'  },
+  // Safir ×2
   { id: 3, col: 7,  row: 8,  weight: 6, value: 13, color: 0x3399ff, name: 'Safir'  },
+  { id: 8, col: 8,  row: 11, weight: 6, value: 13, color: 0x3399ff, name: 'Safir'  },
+  // Elmas ×2
   { id: 4, col: 17, row: 12, weight: 9, value: 20, color: 0xffffff, name: 'Elmas'  },
+  { id: 9, col: 13, row: 13, weight: 9, value: 20, color: 0xffffff, name: 'Elmas'  },
 ];
 
 GameScene.prototype._makeMap = function() {
@@ -38,7 +48,7 @@ GameScene.prototype._makeEntities = function() {
     this.itemSprites[data.id] = item;
   });
 
-  this._solveKnapsack(ITEM_DATA, 15);
+  this._solveKnapsack(ITEM_DATA, 22);
 
   // Exit door — col 5, row 1
   this.exitDoor = this.physics.add.staticSprite(T * 5.5, T * 1.5, 'exit');
@@ -72,14 +82,11 @@ GameScene.prototype._makeEntities = function() {
 
   this.physics.add.collider(this.player, this.walls);
 
-  // Item pickup handled via hold-E in update() — no auto-collect here
-
-  // Exit door overlap (win) — collection is done via _collectItem called from update()
+  // Exit door overlap (win) — door opens after collecting >= 3 jewels
   this.physics.add.overlap(this.player, this.exitDoor, () => {
-    if (this.collected >= 5 && !this.won && !this.caught && !this.doorClosed) {
+    if (this.collected >= 3 && !this.won && !this.caught && !this.doorClosed) {
       this.won = true;
-      const score = this.collected * 100 + this.lives * 200;
-      this._end('YOU WIN!', '#33ff88', score);
+      this._end('YOU WIN!', '#33ff88');
     }
   });
 };
@@ -99,7 +106,7 @@ GameScene.prototype._collectItem = function(item) {
   this.lastItemPos = { x: this.player.x, y: this.player.y };
   this._updateItemHUD();
 
-  if (this.collected >= 5) {
+  if (this.collected >= 3) {
     this.tweens.killTweensOf(this.exitDoor);
     this.exitDoor.setAlpha(1);
     this.exitLabel.setColor('#00ff66');

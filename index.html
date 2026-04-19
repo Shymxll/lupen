@@ -12,7 +12,7 @@
 
     <div class="info-block">
       <div class="label">SÜRE</div>
-      <div id="hud-timer" class="value time">60</div>
+      <div id="hud-timer" class="value time">90</div>
     </div>
 
     <div class="info-block">
@@ -64,10 +64,12 @@
   <div id="game-panel"></div>
 </div>
 
+<!-- Pregame overlay -->
 <div id="pregame-overlay">
   <div id="pregame-modal">
     <div class="pg-title">LUPEN</div>
     <p class="pg-desc">Polis seni yakalamadan mücevverleri topla ve çıkışa ulaş!</p>
+    <p class="pg-desc" style="color:#44ffff;font-size:12px">En az 3 mücevher topla, sonra çıkış kapısına git. Optimal kombinasyonu bulmaya çalış!</p>
 
     <div class="pg-section">
       <div class="pg-section-title">ÇANTA</div>
@@ -75,7 +77,7 @@
     </div>
 
     <div class="pg-section">
-      <div class="pg-section-title">MÜCEVVERLERİ</div>
+      <div class="pg-section-title">MÜCEVVERLERİ (5 tür · haritada 2'şer kopya)</div>
       <div id="pg-jewel-list"></div>
     </div>
 
@@ -93,14 +95,79 @@
   </div>
 </div>
 
+<!-- End-game overlay -->
+<div id="endgame-overlay">
+  <div id="endgame-modal">
+    <div id="end-title" class="end-title end-win">YOU WIN!</div>
+
+    <div class="end-columns">
+      <div class="end-col">
+        <div class="end-col-title">Sizin Seçiminiz</div>
+        <div id="end-player-list" class="end-jewel-list"></div>
+        <div id="end-player-total" class="end-col-total"></div>
+      </div>
+      <div class="end-col-divider"></div>
+      <div class="end-col">
+        <div class="end-col-title optimal-title">Optimal Seçim ✦</div>
+        <div id="end-optimal-list" class="end-jewel-list"></div>
+        <div id="end-optimal-total" class="end-col-total"></div>
+      </div>
+    </div>
+
+    <div class="end-stats">
+      <div id="end-jewel-pct" class="end-stat"></div>
+      <div id="end-time-pct" class="end-stat"></div>
+      <div id="end-final-score" class="end-score"></div>
+    </div>
+
+    <div class="end-name-row">
+      <input id="end-name-input" type="text" placeholder="İsminizi girin..." maxlength="20">
+      <button id="end-save-btn" class="end-btn">Skoru Kaydet</button>
+    </div>
+
+    <div class="end-actions">
+      <button id="end-scoreboard-btn" class="end-btn end-btn-sec">Skor Tablosu</button>
+      <button id="end-restart-btn" class="end-btn end-btn-sec">Yeniden Başlat (R)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scoreboard overlay -->
+<div id="scoreboard-overlay">
+  <div id="scoreboard-modal">
+    <div class="sb-title">SKOR TABLOSU</div>
+    <table id="scoreboard-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>İsim</th>
+          <th>Skor</th>
+          <th>Müc.%</th>
+          <th>Süre%</th>
+          <th>S.</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="scoreboard-close-btn" class="end-btn end-btn-sec">Kapat</button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/pathfinding.js"></script>
+<script src="js/scoreboard.js"></script>
 <script src="js/scene.js"></script>
 <script src="js/textures.js"></script>
 <script src="js/entities.js"></script>
 <script src="js/hud.js"></script>
 <script src="js/knapsack.js"></script>
 <script src="js/main.js"></script>
+
+<script>
+  document.getElementById('scoreboard-close-btn').addEventListener('click', () => {
+    document.getElementById('scoreboard-overlay').style.display = 'none';
+  });
+</script>
 </body>
 </html>

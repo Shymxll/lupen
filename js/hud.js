@@ -53,7 +53,7 @@ GameScene.prototype._updateItemHUD = function() {
   const slotsEl = document.getElementById('hud-bag-slots');
   if (!slotsEl) return;
   slotsEl.innerHTML = '';
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
     const div = document.createElement('div');
     const item = this.inventory[i];
     if (item) {
