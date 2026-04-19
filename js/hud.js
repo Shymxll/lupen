@@ -1,34 +1,29 @@
 GameScene.prototype._makeHUD = function() {
   this._hudObjects = [];
-  const push = obj => { this._hudObjects.push(obj); return obj; };
-  const d = 60;
 
-  push(this.add.text(10, 10, 'STAMINA', { fontSize: '9px', color: '#44446a', fontFamily: 'monospace' }).setDepth(d));
+  const el = id => document.getElementById(id);
 
-  this.stBg   = push(this.add.rectangle(85, 18, 150, 10, 0x0e0e22).setDepth(d));
-  this.stFill = push(this.add.rectangle(10, 18, 150, 10, 0x22cc55).setDepth(d + 1).setOrigin(0, 0.5));
+  const txtEl = (id) => ({
+    setText(v)  { el(id).textContent = v; return this; },
+    setColor(c) { el(id).style.color = c; return this; },
+    setAlpha(a) { el(id).style.opacity = a; return this; },
+  });
 
-  this.itemTxt    = push(this.add.text(10, 30, 'ITEMS: 0 / 5', { fontSize: '11px', color: '#ffcc00', fontFamily: 'monospace' }).setDepth(d));
-  this.weightTxt  = push(this.add.text(10, 44, 'WEIGHT: 0 / 22', { fontSize: '11px', color: '#22cc55', fontFamily: 'monospace' }).setDepth(d));
-  this.targetsTxt = push(this.add.text(10, 58, 'Targets: …',   { fontSize: '11px', color: '#44ffff', fontFamily: 'monospace' }).setDepth(d));
+  this.stBg   = {};
+  this.stFill = {
+    setSize(w)      { el('hud-stamina-fill').style.width = (w / 150 * 100) + '%'; return this; },
+    setFillStyle(c) { el('hud-stamina-fill').style.background = '#' + c.toString(16).padStart(6, '0'); return this; },
+  };
 
-  this.heartsTxt  = push(this.add.text(10, 74, '♥♥♥', {
-    fontSize: '18px', color: '#ff3355', fontFamily: 'monospace'
-  }).setDepth(d));
+  this.itemTxt    = txtEl('hud-items');
+  this.weightTxt  = txtEl('hud-weight');
+  this.targetsTxt = txtEl('hud-targets');
+  this.heartsTxt  = txtEl('hud-hearts');
+  this.ultiTxt    = txtEl('hud-ulti');
+  this.alertTxt   = txtEl('hud-alert');
+  this.timerTxt   = txtEl('hud-timer');
 
-  this.ultiTxt = push(this.add.text(10, ROWS * T - 32, 'Q: ULTI [READY]', {
-    fontSize: '10px', color: '#ff4444', fontFamily: 'monospace'
-  }).setDepth(d));
-
-  push(this.add.text(10, ROWS * T - 18, 'WASD: move   SHIFT: sprint', { fontSize: '9px', color: '#22224a', fontFamily: 'monospace' }).setDepth(d));
-
-  this.alertTxt = push(this.add.text(COLS * T / 2, 10, '', {
-    fontSize: '13px', color: '#ff3344', fontFamily: 'monospace', fontStyle: 'bold'
-  }).setDepth(d).setOrigin(0.5, 0));
-
-  this.timerTxt = push(this.add.text(COLS * T - 10, 10, 'TIME: 60', {
-    fontSize: '13px', color: '#ffcc00', fontFamily: 'monospace', fontStyle: 'bold'
-  }).setDepth(d).setOrigin(1, 0));
+  this._updateHeartsHUD();
 };
 
 GameScene.prototype._updateHeartsHUD = function() {
@@ -48,19 +43,20 @@ GameScene.prototype._updateUltiHUD = function() {
 
 GameScene.prototype._updateTimerHUD = function() {
   const secs = Math.ceil(this.timeLeft);
-  this.timerTxt.setText(`TIME: ${secs}`);
+  this.timerTxt.setText(`${secs}`);
   if (secs <= 10) this.timerTxt.setColor('#ff3344');
   else if (secs <= 20) this.timerTxt.setColor('#ffaa22');
+  else this.timerTxt.setColor('#ffcc00');
 };
 
 GameScene.prototype._updateItemHUD = function() {
   if (this.collected < 5) {
-    this.itemTxt.setText(`ITEMS: ${this.collected} / 5`);
+    this.itemTxt.setText(`${this.collected} / 5`);
   }
 };
 
 GameScene.prototype._updateWeightHUD = function() {
   const w = this.totalWeight;
   const color = w === 0 ? '#22cc55' : w <= 7 ? '#ffaa22' : '#ff3333';
-  this.weightTxt.setText(`WEIGHT: ${w} / 22`).setColor(color);
+  this.weightTxt.setText(`${w} / 22`).setColor(color);
 };

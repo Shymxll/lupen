@@ -2,6 +2,7 @@ new Phaser.Game({
   type: Phaser.AUTO,
   width: COLS * T,
   height: ROWS * T,
+  parent: 'game-panel',
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,

@@ -135,7 +135,7 @@ class GameScene extends Phaser.Scene {
       this.ultiGraphics.clear();
     }
 
-    const cx = COLS * T / 2, cy = ROWS * T / 2;
+    const cx = this.scale.width / 2, cy = this.scale.height / 2;
     this.add.rectangle(cx, cy, 420, 190, 0x000000, 0.93)
       .setScrollFactor(0).setDepth(200);
     this.add.text(cx, cy - 55, msg, {

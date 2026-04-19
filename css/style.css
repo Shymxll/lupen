@@ -1,3 +1,97 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
-body { display: flex; justify-content: center; align-items: center; }
+
+body {
+  display: flex;
+}
+
+#layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+#info-panel {
+  width: 25%;
+  min-width: 180px;
+  height: 100%;
+  background: #07071a;
+  border-right: 1px solid #1a1a3a;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: monospace;
+  color: #ccccdd;
+  overflow: hidden;
+}
+
+.panel-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 4px;
+  text-align: center;
+  border-bottom: 1px solid #1a1a3a;
+  padding-bottom: 12px;
+}
+
+.label {
+  font-size: 9px;
+  color: #44446a;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.value {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.time  { color: #ffcc00; }
+.hearts { color: #ff3355; font-size: 22px; }
+.cyan  { color: #44ffff; font-size: 14px; }
+.ulti  { color: #ff4444; font-size: 12px; }
+
+#hud-stamina-bg {
+  width: 100%;
+  height: 8px;
+  background: #0e0e22;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#hud-stamina-fill {
+  height: 100%;
+  width: 100%;
+  background: #22cc55;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+#hud-alert {
+  font-size: 12px;
+  font-weight: bold;
+  color: #ff3344;
+  text-align: center;
+  min-height: 18px;
+  letter-spacing: 1px;
+}
+
+.controls {
+  margin-top: auto;
+  font-size: 10px;
+  color: #33335a;
+  line-height: 1.8;
+}
+
+#game-panel {
+  width: 75%;
+  height: 100%;
+}
+
+#game-panel canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
